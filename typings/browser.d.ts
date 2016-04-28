@@ -3,6 +3,7 @@
 /// <reference path="browser/ambient/express-session/index.d.ts" />
 /// <reference path="browser/ambient/express/index.d.ts" />
 /// <reference path="browser/ambient/jquery/index.d.ts" />
+/// <reference path="browser/ambient/mongodb/index.d.ts" />
 /// <reference path="browser/ambient/node/index.d.ts" />
 /// <reference path="browser/ambient/passport-local/index.d.ts" />
 /// <reference path="browser/ambient/passport/index.d.ts" />
