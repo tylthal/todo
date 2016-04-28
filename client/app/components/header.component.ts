@@ -1,4 +1,4 @@
-import {Component, OnInit} from 'angular2/core';
+import {Component, OnInit, Input} from 'angular2/core';
 import {DataService} from '../services/data.service';
 
 @Component({
@@ -10,6 +10,8 @@ import {DataService} from '../services/data.service';
 export class HeaderComponent implements OnInit {
   constructor(private _dataService: DataService) {}
 
+  @Input() loggedIn: boolean;
+
   ngOnInit() {
-            }
+  }
 }

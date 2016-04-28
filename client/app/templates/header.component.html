@@ -4,7 +4,10 @@
       <h1 class="header">Todo</h1>
     </div>
     <div class="navbar-form navbar-right">
-      <div id="login"></div>
+      <div id="login">
+        <a *ngIf="!loggedIn" href="/login.html">login</a>
+        <a *ngIf="loggedIn" href="/logout">logout</a>
+      </div>
     </div>
   <div>
 </div>

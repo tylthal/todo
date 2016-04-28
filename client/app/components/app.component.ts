@@ -1,5 +1,8 @@
 import {Component, OnInit} from 'angular2/core';
 import {DataService} from '../services/data.service';
+import {HeaderComponent} from './header.component';
+import {SplashComponent} from './splash.component';
+import {TodoListComponent} from './todolist.component';
 
 @Component({
     selector: 'my-app',
@@ -8,6 +11,7 @@ import {DataService} from '../services/data.service';
       './app/styles/app.component.css'
     ],
     providers: [DataService],
+    directives: [HeaderComponent, SplashComponent, TodoListComponent]
 })
 
 export class AppComponent implements OnInit {
