@@ -1,7 +1,7 @@
 export class Todo {
   title: string;
   description: string;
-  id: string;
+  id: any;
 
   constructor(title: string, description: string) {
     this.title = title;
