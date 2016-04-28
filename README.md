@@ -8,6 +8,7 @@ open a cmd prompt in the base of the project directory and run the following com
 * npm install -g gulp gulp-typescript nodemon
 * npm install
 * typings install
+* gulp watch <-- this command will compile the typescript and watch for changes in the project
 
 to run the site open a cmd prompt in the root of the folder and type "npm start"
 then navigate to http://localhost:8080
