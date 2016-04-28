@@ -1,0 +1,88 @@
+########## Server Code
+passport.use(new localStrategy.Strategy({
+
+}, function(email, pass, done) {
+  // need to verify the user here
+  db.verifyUserInDb(email, pass, function(result) {
+    if(result) {
+      return done(null, email);
+    } else {
+      done("Invalid login credentials", null);
+    }
+  });
+}));
+
+app.post('/add', function(req, res) {
+  var title = req.body.title;
+  var description = req.body.description;
+  db.addTodo(req.user, title, description, function(id) {
+    res.send(id);
+  })
+});
+
+app.get('/todos', function(req, res) {
+  db.getTodos(req.user, function(results) {
+    console.log(results);
+    res.send(results);
+  });
+})
+
+########## Database code
+import MongoDB = require('mongodb');
+
+export class db {
+  url: string = 'mongodb://localhost:27017/todo';
+  mongoClient: MongoDB.MongoClient = new MongoDB.MongoClient();
+  db: MongoDB.Db;
+
+  constructor() {
+    this.connect();
+  }
+
+  connect() {
+    var self = this;
+    this.mongoClient.connect(this.url, function(err, db) {
+      if(err) {
+        console.log(err);
+      } else {
+        console.log("Connected successfully to the database.");
+        self.db = db;
+      }
+    });
+  }
+
+  addTodo(email: string, title: string, description: string, callback: Function) {
+    var todos = this.db.collection('todos');
+    todos.insertOne({"userid": email, "title": title, "description": description}).then((result) => {
+      callback(result.insertedId);
+    });
+  }
+
+  getTodos(email: string, callback: Function) {
+    var todos = this.db.collection('todos');
+    todos.find({"userid":email}).toArray().then((results) => {
+      console.log(results);
+      if(!results) {
+        callback([]);
+      } else {
+        callback(results);
+      }
+    })
+  }
+
+  verifyUserInDb(email: string, password: string, callback: Function) {
+    var users = this.db.collection('users');
+    // check if the user is in the database
+    users.findOne({"_id": email}).then((doc) => {
+      if(doc && doc._id == email && doc.password == password) {
+        callback(true);
+      } else {
+        // insert the user into the database
+        var newUser = {"_id": email, "password": password};
+        users.insertOne(newUser).then((results) => {
+          callback(results.insertedCount == 1);
+        });
+      }
+    });
+  }
+}
