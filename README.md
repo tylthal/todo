@@ -1,14 +1,24 @@
-install nodejs from https://nodejs.org/
+# Sticky Notes SaaS
 
-install mongodb from https://www.mongodb.org/
+This repository contains the planning material for building a minimalist single page application for managing sticky notes.
 
-checkout or download the code from https://github.com/tylthal/todo
+## Vision
+Create a clean and vibrant web application that lets users manage tasks and ideas using interactive sticky notes.
 
-open a cmd prompt in the base of the project directory and run the following commands:
-* npm install -g gulp gulp-typescript nodemon
-* npm install
-* typings install
-* gulp watch <-- this command will compile the typescript and watch for changes in the project
+## MVP Features
+- User accounts with AWS Cognito authentication
+- Private boards per user
+- Add, edit, delete, drag and resize notes
+- Color coding and text formatting
+- Tagging and free‑text search
+- Attach files and images to notes
+- Share notes privately or publicly with revocable URLs
+- Real‑time collaboration among authenticated users
 
-to run the site open a cmd prompt in the root of the folder and type "npm start"
-then navigate to http://localhost:8080
+## Technical Stack
+- **Frontend:** React.js hosted via AWS Amplify or CloudFront
+- **Backend:** Serverless architecture using AWS Lambda and API Gateway
+- **Database:** DynamoDB
+
+Longer term features like offline capability, integrations, and analytics are detailed in `todo.md`.
+
