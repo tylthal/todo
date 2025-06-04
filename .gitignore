@@ -1,6 +1,0 @@
-*.js
-*.js.map
-/node_modules
-/.vscode
-npm-debug.log
-!gulpfile.js
