@@ -1,9 +1,11 @@
 # Sticky Notes SaaS
 
-This repository contains the planning material for building a minimalist single page application for managing sticky notes.
+This repository contains the planning material for building a minimalist single
+page application for managing sticky notes.
 
 ## Vision
-Create a clean and vibrant web application that lets users manage tasks and ideas using interactive sticky notes.
+Create a clean and vibrant web application that lets users manage tasks and idea
+s using interactive sticky notes.
 
 ## MVP Features
 - User accounts with AWS Cognito authentication
@@ -20,5 +22,33 @@ Create a clean and vibrant web application that lets users manage tasks and idea
 - **Backend:** Serverless architecture using AWS Lambda and API Gateway
 - **Database:** DynamoDB
 
-Longer term features like offline capability, integrations, and analytics are detailed in `todo.md`.
+Longer term features like offline capability, integrations, and analytics are de
+tailed in `todo.md`.
 
+## Repository Structure
+
+The project uses a monorepo managed with npm workspaces. Source code lives in `packages/`:
+
+- `packages/frontend` – React single page application
+- `packages/backend` – AWS Lambda handlers and infrastructure code
+- `packages/shared` – Reusable TypeScript utilities shared by other packages
+
+## Local Development
+
+1. Install Node.js (version 16 or newer).
+2. From the repository root, install all dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the frontend development server:
+   ```bash
+   npm run dev:frontend
+   ```
+4. Run the backend locally:
+   ```bash
+   npm run dev:backend
+   ```
+5. Build all packages:
+   ```bash
+   npm run build
+   ```
