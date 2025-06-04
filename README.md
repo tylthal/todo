@@ -52,3 +52,20 @@ The project uses a monorepo managed with npm workspaces. Source code lives in `p
    ```bash
    npm run build
    ```
+
+## Frontend Development
+
+The React application lives in `packages/frontend`. Running the following command
+starts the [Vite](https://vitejs.dev/) dev server with hot module replacement:
+
+```bash
+npm run dev:frontend
+```
+
+Any changes under `packages/frontend/src` will automatically reload the browser.
+Styles are plain CSS files imported from the React components. To build the
+production bundle for the frontend only, run:
+
+```bash
+npm run build --workspace frontend
+```
