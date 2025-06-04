@@ -1,0 +1,11 @@
+{
+  "name": "sticky-notes-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev:frontend": "npm start --workspace frontend",
+    "dev:backend": "npm start --workspace backend",
+    "build": "npm run build --workspaces"
+  }
+}
