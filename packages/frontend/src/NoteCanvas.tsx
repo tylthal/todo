@@ -9,32 +9,33 @@ interface Note {
 
 export const NoteCanvas: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [input, setInput] = useState('');
 
   const addNote = () => {
-    if (!input.trim()) return;
-    setNotes([...notes, { id: Date.now(), text: input }]);
-    setInput('');
+    setNotes([...notes, { id: Date.now(), text: '' }]);
   };
 
   const removeNote = (id: number) => {
     setNotes(notes.filter(n => n.id !== id));
   };
 
+  const updateNote = (id: number, text: string) => {
+    setNotes(notes.map(n => (n.id === id ? { ...n, text } : n)));
+  };
+
   return (
     <div className="board">
-      <h1>Universal Note Canvas</h1>
       <div className="controls">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Write a note..."
-        />
-        <button onClick={addNote}>Add</button>
+        <button onClick={addNote}>Add Note</button>
       </div>
       <div className="notes">
         {notes.map(note => (
-          <StickyNote key={note.id} id={note.id} text={note.text} onDelete={removeNote} />
+          <StickyNote
+            key={note.id}
+            id={note.id}
+            text={note.text}
+            onDelete={removeNote}
+            onUpdate={updateNote}
+          />
         ))}
       </div>
     </div>
