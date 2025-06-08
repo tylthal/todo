@@ -67,5 +67,5 @@ Styles are plain CSS files imported from the React components. To build the
 production bundle for the frontend only, run:
 
 ```bash
-npm run build --workspace frontend
+npm run build --workspace packages/frontend
 ```
