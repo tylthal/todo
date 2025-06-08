@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Note } from './App';
+import { ColorPalette } from './ColorPalette';
 
 const adjustColor = (color: string, amount: number) => {
   let c = color.startsWith('#') ? color.slice(1) : color;
@@ -83,36 +84,31 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
-        <button
-          className="archive"
-          onPointerDown={e => e.stopPropagation()}
-          onClick={() => onArchive(note.id)}
-          title="Archive"
-        >
-          <i className="fa fa-box-archive" />
-        </button>
-      )}
-      {selected && !editing && (
-        <>
+        <div className="note-controls">
           <button
-            className="rotate-handle"
+            className="archive note-control"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={() => onArchive(note.id)}
+            title="Archive"
+          >
+            <i className="fa fa-box-archive" />
+          </button>
+          <button
+            className="rotate-handle note-control"
             onPointerDown={e => e.stopPropagation()}
             onClick={() => onUpdate(note.id, { rotation: note.rotation + 15 })}
             title="Rotate"
           >
             <i className="fa fa-rotate" />
           </button>
-          <input
-            type="color"
-            className="color-picker"
+          <ColorPalette
             value={note.color}
-            onChange={(e) => onUpdate(note.id, { color: e.target.value })}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              onSelect(note.id);
-            }}
+            onChange={(color) => onUpdate(note.id, { color })}
           />
-        </>
+          <div className="resize-handle note-control">
+            <i className="fa fa-up-right-and-down-left-from-center" />
+          </div>
+        </div>
       )}
       {editing ? (
         <textarea
@@ -125,7 +121,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       ) : (
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
-      {selected && !editing && <div className="resize-handle" />}
     </div>
   );
 };
