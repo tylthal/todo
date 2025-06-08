@@ -1,16 +1,15 @@
 import React, { useRef, useState } from 'react';
+import SimpleMdeReact from 'react-simplemde-editor';
+import 'easymde/dist/easymde.min.css';
 import { Note } from './App';
 
 export interface StickyNoteProps {
   note: Note;
-  onDelete: (id: number) => void;
   onUpdate: (id: number, data: Partial<Note>) => void;
   onArchive: (id: number) => void;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onDelete, onUpdate, onArchive }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState(false);
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive }) => {
   const modeRef = useRef<'drag' | 'resize' | null>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
 
@@ -18,7 +17,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onDelete, onUpdate
     const target = e.target as HTMLElement;
     if (target.classList.contains('resize-handle')) {
       modeRef.current = 'resize';
-    } else if (!target.closest('.toolbar')) {
+    } else if (!target.closest('.editor-toolbar')) {
       modeRef.current = 'drag';
       offsetRef.current = { x: e.clientX - note.x, y: e.clientY - note.y };
     }
@@ -41,14 +40,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onDelete, onUpdate
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
-  const handleInput = () => {
-    if (contentRef.current) {
-      onUpdate(note.id, { content: contentRef.current.innerHTML });
-    }
-  };
-
-  const exec = (cmd: string) => {
-    document.execCommand(cmd);
+  const handleChange = (value: string) => {
+    onUpdate(note.id, { content: value });
   };
 
   return (
@@ -58,26 +51,16 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onDelete, onUpdate
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
-      onClick={() => setSelected(true)}
     >
-      {selected && (
-        <div className="toolbar">
-          <button onMouseDown={e => e.preventDefault()} onClick={() => exec('bold')}>B</button>
-          <button onMouseDown={e => e.preventDefault()} onClick={() => exec('italic')}>I</button>
-          <button onMouseDown={e => e.preventDefault()} onClick={() => exec('underline')}>U</button>
-        </div>
-      )}
-      <button className="delete" onClick={() => onDelete(note.id)}>&times;</button>
-      <button className="archive" onClick={() => onArchive(note.id)} title="Archive">&#128465;</button>
-      <div
-        ref={contentRef}
-        className="note-text"
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        onFocus={() => setSelected(true)}
-        onBlur={() => setSelected(false)}
-        dangerouslySetInnerHTML={{ __html: note.content }}
+      <button className="archive" onClick={() => onArchive(note.id)} title="Archive"><i className="fa fa-box-archive" /></button>
+      <SimpleMdeReact
+        value={note.content}
+        onChange={handleChange}
+        options={{
+          spellChecker: false,
+          status: false,
+          toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "preview"],
+        }}
       />
       <div className="resize-handle" />
     </div>
