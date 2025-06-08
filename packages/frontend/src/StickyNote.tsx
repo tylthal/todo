@@ -1,6 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { Note } from './App';
 
+const adjustColor = (color: string, amount: number) => {
+  let c = color.startsWith('#') ? color.slice(1) : color;
+  if (c.length === 3) {
+    c = c.split('').map(ch => ch + ch).join('');
+  }
+  const num = parseInt(c, 16);
+  let r = (num >> 16) + amount;
+  let g = ((num >> 8) & 0xff) + amount;
+  let b = (num & 0xff) + amount;
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
+
 export interface StickyNoteProps {
   note: Note;
   onUpdate: (id: number, data: Partial<Note>) => void;
@@ -51,7 +66,16 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   return (
     <div
       className={`note${selected ? ' selected' : ''}`}
-      style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
+      style={{
+        left: note.x,
+        top: note.y,
+        width: note.width,
+        height: note.height,
+        transform: `rotate(${note.rotation}deg)`,
+        backgroundColor: note.color,
+        borderColor: adjustColor(note.color, -30),
+        zIndex: note.zIndex,
+      }}
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
@@ -61,6 +85,27 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         <button className="archive" onClick={() => onArchive(note.id)} title="Archive">
           <i className="fa fa-box-archive" />
         </button>
+      )}
+      {selected && !editing && (
+        <>
+          <button
+            className="rotate-handle"
+            onClick={() => onUpdate(note.id, { rotation: note.rotation + 15 })}
+            title="Rotate"
+          >
+            <i className="fa fa-rotate" />
+          </button>
+          <input
+            type="color"
+            className="color-picker"
+            value={note.color}
+            onChange={(e) => onUpdate(note.id, { color: e.target.value })}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              onSelect(note.id);
+            }}
+          />
+        </>
       )}
       {editing ? (
         <textarea

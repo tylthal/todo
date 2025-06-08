@@ -12,14 +12,20 @@ export interface Note {
   width: number;
   height: number;
   archived: boolean;
+  color: string;
+  rotation: number;
+  zIndex: number;
 }
 
 const App: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [zCounter, setZCounter] = useState(0);
 
   const addNote = () => {
     const id = Date.now();
+    const newZ = zCounter + 1;
+    setZCounter(newZ);
     setNotes([
       ...notes,
       {
@@ -29,13 +35,27 @@ const App: React.FC = () => {
         y: 40,
         width: 150,
         height: 120,
-        archived: false
-      }
+        archived: false,
+        color: '#fef08a',
+        rotation: 0,
+        zIndex: newZ,
+      },
     ]);
   };
 
   const updateNote = (id: number, data: Partial<Note>) => {
     setNotes(notes.map(n => (n.id === id ? { ...n, ...data } : n)));
+  };
+
+  const handleSelect = (id: number | null) => {
+    if (id === null) {
+      setSelectedId(null);
+      return;
+    }
+    const newZ = zCounter + 1;
+    setZCounter(newZ);
+    setSelectedId(id);
+    setNotes(notes.map(n => (n.id === id ? { ...n, zIndex: newZ } : n)));
   };
 
 
@@ -48,7 +68,7 @@ const App: React.FC = () => {
           onUpdate={updateNote}
           onArchive={(id) => updateNote(id, { archived: true })}
           selectedId={selectedId}
-          onSelect={setSelectedId}
+          onSelect={handleSelect}
         />
       </div>
     </UserProvider>
