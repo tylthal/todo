@@ -25,28 +25,33 @@
 }
 
 .note {
-  background-color: #fff9c4;
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
   padding: 0.5rem;
   position: absolute;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   word-break: break-word;
   touch-action: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.note:active {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
 
 .note-text {
   width: 100%;
   height: 100%;
-  border: none;
-  background: transparent;
-  resize: none;
-  font-family: inherit;
-  font-size: 1rem;
-  outline: none;
 }
 
-.note .delete {
+.note .CodeMirror,
+.note textarea {
+  height: calc(100% - 24px);
+}
+
+.note .archive {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -54,16 +59,7 @@
   background: transparent;
   cursor: pointer;
   font-size: 1rem;
-}
-
-.note .archive {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1rem;
+  color: #475569;
 }
 
 .resize-handle {
@@ -72,30 +68,8 @@
   bottom: 0;
   width: 16px;
   height: 16px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.15);
   cursor: nwse-resize;
-}
-
-.toolbar {
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
-.toolbar button {
-  padding: 0.25rem;
-  font-size: 0.9rem;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.toolbar button:active {
-  background: #e5e7eb;
-}
-
-.note .delete:hover {
-  color: #dc2626;
 }
 
 .app {
@@ -121,8 +95,8 @@
   cursor: pointer;
 }
 .account .add-note {
-  background-color: #14b8a6;
-  border-color: #14b8a6;
+  background-color: #3b82f6;
+  border-color: #3b82f6;
 }
 .account button:hover {
   background-color: rgba(255, 255, 255, 0.2);

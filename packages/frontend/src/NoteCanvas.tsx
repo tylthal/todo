@@ -5,14 +5,12 @@ import { Note } from './App';
 
 export interface NoteCanvasProps {
   notes: Note[];
-  onDelete: (id: number) => void;
   onUpdate: (id: number, data: Partial<Note>) => void;
   onArchive: (id: number) => void;
 }
 
 export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   notes,
-  onDelete,
   onUpdate,
   onArchive
 }) => {
@@ -23,7 +21,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           <StickyNote
             key={note.id}
             note={note}
-            onDelete={onDelete}
             onUpdate={onUpdate}
             onArchive={onArchive}
           />

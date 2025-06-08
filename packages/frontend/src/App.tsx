@@ -37,9 +37,6 @@ const App: React.FC = () => {
     setNotes(notes.map(n => (n.id === id ? { ...n, ...data } : n)));
   };
 
-  const removeNote = (id: number) => {
-    setNotes(notes.filter(n => n.id !== id));
-  };
 
   return (
     <UserProvider>
@@ -47,7 +44,6 @@ const App: React.FC = () => {
         <AccountControls onAddNote={addNote} />
         <NoteCanvas
           notes={notes.filter(n => !n.archived)}
-          onDelete={removeNote}
           onUpdate={updateNote}
           onArchive={(id) => updateNote(id, { archived: true })}
         />
