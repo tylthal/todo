@@ -1,24 +1,17 @@
 .board {
   font-family: sans-serif;
   padding: 1rem;
-  text-align: center;
+  text-align: left;
 }
 
 .controls {
   margin-bottom: 1rem;
 }
 
-.controls input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  width: 60%;
-  max-width: 300px;
-}
-
 .controls button {
-  margin-left: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #fbbf24;
+  background-color: #14b8a6;
+  color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -29,12 +22,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .note {
-  background-color: #fef08a;
-  padding: 1rem;
+  background-color: #fff9c4;
+  padding: 0.5rem;
   width: 150px;
   min-height: 100px;
   position: relative;
@@ -43,8 +36,16 @@
   word-break: break-word;
 }
 
-.note p {
-  margin: 0;
+
+.note-text {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
 }
 
 .note .delete {
@@ -62,16 +63,29 @@
 }
 
 .app {
-  padding: 1rem;
+  padding: 0;
 }
 
 .account {
-  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #0f172a;
+  color: #fff;
 }
 
 .account button {
   margin-left: 0.5rem;
   padding: 0.25rem 0.5rem;
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.account button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .welcome {
