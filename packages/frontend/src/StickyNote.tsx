@@ -30,6 +30,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   const [editing, setEditing] = useState(false);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     onSelect(note.id);
     if (editing) return;
     const target = e.target as HTMLElement;
@@ -82,7 +83,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
-        <button className="archive" onClick={() => onArchive(note.id)} title="Archive">
+        <button
+          className="archive"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={() => onArchive(note.id)}
+          title="Archive"
+        >
           <i className="fa fa-box-archive" />
         </button>
       )}
@@ -90,6 +96,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         <>
           <button
             className="rotate-handle"
+            onPointerDown={e => e.stopPropagation()}
             onClick={() => onUpdate(note.id, { rotation: note.rotation + 15 })}
             title="Rotate"
           >
