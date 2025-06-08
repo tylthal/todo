@@ -7,15 +7,19 @@ export interface NoteCanvasProps {
   notes: Note[];
   onUpdate: (id: number, data: Partial<Note>) => void;
   onArchive: (id: number) => void;
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
 }
 
 export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   notes,
   onUpdate,
-  onArchive
+  onArchive,
+  selectedId,
+  onSelect
 }) => {
   return (
-    <div className="board">
+    <div className="board" onPointerDown={() => onSelect(null)}>
       <div className="notes">
         {notes.map(note => (
           <StickyNote
@@ -23,6 +27,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             note={note}
             onUpdate={onUpdate}
             onArchive={onArchive}
+            selected={selectedId === note.id}
+            onSelect={onSelect}
           />
         ))}
       </div>

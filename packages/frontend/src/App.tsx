@@ -16,6 +16,7 @@ export interface Note {
 
 const App: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const addNote = () => {
     const id = Date.now();
@@ -46,6 +47,8 @@ const App: React.FC = () => {
           notes={notes.filter(n => !n.archived)}
           onUpdate={updateNote}
           onArchive={(id) => updateNote(id, { archived: true })}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
         />
       </div>
     </UserProvider>
