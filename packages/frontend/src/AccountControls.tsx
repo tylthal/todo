@@ -34,22 +34,28 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
       <div className="workspace-controls">
         <select
           value={currentWorkspaceId}
-          onChange={e => onSwitchWorkspace(Number(e.target.value))}
+          onChange={e => {
+            const val = e.target.value;
+            if (val === 'new') {
+              onCreateWorkspace();
+            } else {
+              onSwitchWorkspace(Number(val));
+            }
+          }}
         >
           {workspaces.map(ws => (
             <option key={ws.id} value={ws.id}>{ws.name}</option>
           ))}
+          <option value="new">{"<New Workspace>"}</option>
         </select>
-        <button onClick={onCreateWorkspace} title="New Workspace">
-          <i className="fa-solid fa-folder-plus" />
-        </button>
-        <button
-          onClick={() => onRenameWorkspace(currentWorkspaceId)}
-          title="Rename Workspace"
-          disabled={currentWorkspaceId === 1}
-        >
-          <i className="fa-solid fa-pen" />
-        </button>
+        {currentWorkspaceId !== 1 && (
+          <button
+            onClick={() => onRenameWorkspace(currentWorkspaceId)}
+            title="Rename Workspace"
+          >
+            <i className="fa-solid fa-pen" />
+          </button>
+        )}
       </div>
       <div className="account-actions">
         <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
