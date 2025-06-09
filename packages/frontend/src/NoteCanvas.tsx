@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
 import { Note } from './App';
+import { clampZoom, zoomAroundCenter, zoomAroundPoint } from './zoomUtils';
 
 export interface NoteCanvasProps {
   notes: Note[];
@@ -29,11 +30,11 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const panRef = useRef<{ startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
   const [panning, setPanning] = useState(false);
   const touchesRef = useRef(new Map<number, {x: number; y: number}>());
+  // Information about an active pinch/gesture zoom
   const pinchRef = useRef<{
-    start: number;
-    zoom: number;
-    centerScreen: { x: number; y: number };
-    centerBoard: { x: number; y: number };
+    start: number; // initial distance between touches or initial gesture scale
+    zoom: number;  // zoom level when the gesture started
+    center: { x: number; y: number }; // screen coordinates of the gesture center
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(offset);
@@ -42,11 +43,18 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     offsetRef.current = offset;
   }, [offset]);
 
-  const clampZoom = (z: number) => Math.max(0.5, Math.min(3, z));
-
+  /**
+   * Zoom using the UI controls. The view should stay centered on the screen
+   * while zooming, so we adjust the offset accordingly using the utility
+   * helpers.
+   */
   const applyZoom = (newZoom: number) => {
+    const board = boardRef.current;
+    if (!board) return;
     const clamped = clampZoom(newZoom);
     setZoom(clamped);
+    setOffset(o => zoomAroundCenter(board, zoomRef.current, clamped, o));
+    zoomRef.current = clamped;
   };
 
   const fitToScreen = () => {
@@ -69,21 +77,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
 
   const zoomRef = useRef(zoom);
 
-  useEffect(() => {
-    const prev = zoomRef.current;
-    if (prev === zoom) return;
-    if (!pinchRef.current) {
-      const board = boardRef.current;
-      if (board) {
-        const rect = board.getBoundingClientRect();
-        const dx = (rect.width / 2) * (1 / zoom - 1 / prev);
-        const dy = (rect.height / 2) * (1 / zoom - 1 / prev);
-        setOffset(o => ({ x: o.x + dx, y: o.y + dy }));
-      }
-    }
-    zoomRef.current = zoom;
-  }, [zoom, setOffset]);
-
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     onSelect(null);
     panRef.current = {
@@ -99,17 +92,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       if (touchesRef.current.size === 2) {
         const [a, b] = Array.from(touchesRef.current.values());
         const start = Math.hypot(a.x - b.x, a.y - b.y);
-        const centerScreen = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-        const centerBoard = {
-          x: (centerScreen.x - offset.x) / zoomRef.current,
-          y: (centerScreen.y - offset.y) / zoomRef.current,
-        };
-        pinchRef.current = {
-          start,
-          zoom: zoomRef.current,
-          centerScreen,
-          centerBoard,
-        };
+        const center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        pinchRef.current = { start, zoom: zoomRef.current, center };
       }
     }
   };
@@ -118,16 +102,19 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pinchRef.current && touchesRef.current.size === 2) {
+        const board = boardRef.current;
+        if (!board) return;
         const [a, b] = Array.from(touchesRef.current.values());
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        const newZoom = pinchRef.current.zoom * (dist / pinchRef.current.start);
-        const clamped = clampZoom(newZoom);
-        const { centerScreen, centerBoard } = pinchRef.current;
-        setZoom(clamped);
-        setOffset({
-          x: centerScreen.x - centerBoard.x * clamped,
-          y: centerScreen.y - centerBoard.y * clamped,
-        });
+        const newZoom = clampZoom(
+          pinchRef.current.zoom * (dist / pinchRef.current.start)
+        );
+        const pivot = pinchRef.current.center;
+        setZoom(newZoom);
+        setOffset(
+          zoomAroundPoint(board, pivot, pinchRef.current.zoom, newZoom, offsetRef.current)
+        );
+        zoomRef.current = newZoom;
         return;
       }
     }
@@ -147,6 +134,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     }
   };
 
+  /**
+   * Zoom using the mouse wheel or trackpad. The zoom should originate from the
+   * cursor position, so we compute a new offset relative to that point.
+   */
   const applyWheelZoom = (
     clientX: number,
     clientY: number,
@@ -154,15 +145,13 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     target: HTMLElement
   ) => {
     const factor = deltaY < 0 ? 1.1 : 0.9;
-    const rect = target.getBoundingClientRect();
-    const boardX = (clientX - rect.left - offsetRef.current.x) / zoomRef.current;
-    const boardY = (clientY - rect.top - offsetRef.current.y) / zoomRef.current;
     const newZoom = clampZoom(zoomRef.current * factor);
+    const pivot = { x: clientX, y: clientY };
     setZoom(newZoom);
-    setOffset({
-      x: clientX - rect.left - boardX * newZoom,
-      y: clientY - rect.top - boardY * newZoom,
-    });
+    setOffset(
+      zoomAroundPoint(target, pivot, zoomRef.current, newZoom, offsetRef.current)
+    );
+    zoomRef.current = newZoom;
   };
 
 
@@ -187,11 +176,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       pinchRef.current = {
         start: 1,
         zoom: zoomRef.current,
-        centerScreen: { x: e.clientX, y: e.clientY },
-        centerBoard: {
-          x: (e.clientX - offset.x) / zoomRef.current,
-          y: (e.clientY - offset.y) / zoomRef.current,
-        },
+        center: { x: e.clientX, y: e.clientY },
       };
     };
     const gestureChange = (e: any) => {
@@ -199,12 +184,12 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       e.preventDefault();
       const newZoom = pinchRef.current.zoom * e.scale;
       const clamped = clampZoom(newZoom);
-      const { centerScreen, centerBoard } = pinchRef.current;
+      const pivot = pinchRef.current.center;
       setZoom(clamped);
-      setOffset({
-        x: centerScreen.x - centerBoard.x * clamped,
-        y: centerScreen.y - centerBoard.y * clamped,
-      });
+      setOffset(
+        zoomAroundPoint(board, pivot, pinchRef.current.zoom, clamped, offsetRef.current)
+      );
+      zoomRef.current = clamped;
     };
     const gestureEnd = () => {
       pinchRef.current = null;
