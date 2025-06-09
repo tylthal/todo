@@ -143,11 +143,58 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (!e.ctrlKey) return;
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
-    applyZoom(zoomRef.current * factor);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const boardX = (e.clientX - rect.left - offset.x) / zoomRef.current;
+    const boardY = (e.clientY - rect.top - offset.y) / zoomRef.current;
+    const newZoom = clampZoom(zoomRef.current * factor);
+    setZoom(newZoom);
+    setOffset({
+      x: e.clientX - rect.left - boardX * newZoom,
+      y: e.clientY - rect.top - boardY * newZoom,
+    });
   };
+
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const gestureStart = (e: any) => {
+      e.preventDefault();
+      pinchRef.current = {
+        start: 1,
+        zoom: zoomRef.current,
+        centerScreen: { x: e.clientX, y: e.clientY },
+        centerBoard: {
+          x: (e.clientX - offset.x) / zoomRef.current,
+          y: (e.clientY - offset.y) / zoomRef.current,
+        },
+      };
+    };
+    const gestureChange = (e: any) => {
+      if (!pinchRef.current) return;
+      e.preventDefault();
+      const newZoom = pinchRef.current.zoom * e.scale;
+      const clamped = clampZoom(newZoom);
+      const { centerScreen, centerBoard } = pinchRef.current;
+      setZoom(clamped);
+      setOffset({
+        x: centerScreen.x - centerBoard.x * clamped,
+        y: centerScreen.y - centerBoard.y * clamped,
+      });
+    };
+    const gestureEnd = () => {
+      pinchRef.current = null;
+    };
+    board.addEventListener('gesturestart', gestureStart as EventListener);
+    board.addEventListener('gesturechange', gestureChange as EventListener);
+    board.addEventListener('gestureend', gestureEnd as EventListener);
+    return () => {
+      board.removeEventListener('gesturestart', gestureStart as EventListener);
+      board.removeEventListener('gesturechange', gestureChange as EventListener);
+      board.removeEventListener('gestureend', gestureEnd as EventListener);
+    };
+  }, [offset]);
 
   return (
     <div
