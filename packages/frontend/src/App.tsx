@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [zCounter, setZCounter] = useState(0);
+  const [showArchived, setShowArchived] = useState(false);
 
   const addNote = () => {
     const id = Date.now();
@@ -45,6 +46,10 @@ const App: React.FC = () => {
     setNotes(notes.map(n => (n.id === id ? { ...n, ...data } : n)));
   };
 
+  const toggleArchive = (id: number) => {
+    setNotes(notes.map(n => (n.id === id ? { ...n, archived: !n.archived } : n)));
+  };
+
   const handleSelect = (id: number | null) => {
     if (id === null) {
       setSelectedId(null);
@@ -56,15 +61,21 @@ const App: React.FC = () => {
     setNotes(notes.map(n => (n.id === id ? { ...n, zIndex: newZ } : n)));
   };
 
+  const toggleShowArchived = () => setShowArchived(!showArchived);
+
 
   return (
     <UserProvider>
       <div className="app">
-        <AccountControls onAddNote={addNote} />
+        <AccountControls
+          onAddNote={addNote}
+          showArchived={showArchived}
+          onToggleArchived={toggleShowArchived}
+        />
         <NoteCanvas
-          notes={notes.filter(n => !n.archived)}
+          notes={showArchived ? notes : notes.filter(n => !n.archived)}
           onUpdate={updateNote}
-          onArchive={(id) => updateNote(id, { archived: true })}
+          onArchive={toggleArchive}
           selectedId={selectedId}
           onSelect={handleSelect}
         />

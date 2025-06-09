@@ -195,3 +195,7 @@
 .welcome {
   margin-right: 0.5rem;
 }
+
+.note.archived {
+  opacity: 0.6;
+}

@@ -86,7 +86,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
 
   return (
     <div
-      className={`note${selected ? ' selected' : ''}`}
+      className={`note${selected ? ' selected' : ''}${note.archived ? ' archived' : ''}`}
       style={{
         left: note.x,
         top: note.y,
@@ -108,9 +108,9 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
             className="archive note-control"
             onPointerDown={e => e.stopPropagation()}
             onClick={() => onArchive(note.id)}
-            title="Archive"
+            title={note.archived ? 'Unarchive' : 'Archive'}
           >
-          <i className="fa-solid fa-box-archive" />
+          <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
           </button>
           <ColorPalette
             value={note.color}
