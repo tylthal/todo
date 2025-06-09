@@ -176,6 +176,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
 
+  // Re-register wheel zoom handler whenever the active workspace changes so the
+  // correct setters are used
   useEffect(() => {
     const board = boardRef.current;
     if (!board) return;
@@ -187,8 +189,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     return () => {
       board.removeEventListener('wheel', onWheel);
     };
-  }, []);
+  }, [setZoom, setOffset]);
 
+  // Gesture events also need to use the latest workspace handlers for pinch zoom
   useEffect(() => {
     const board = boardRef.current;
     if (!board) return;
@@ -223,7 +226,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       board.removeEventListener('gesturechange', gestureChange as EventListener);
       board.removeEventListener('gestureend', gestureEnd as EventListener);
     };
-  }, [offset]);
+  }, [setZoom, setOffset]);
 
   return (
     <div
