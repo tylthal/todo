@@ -60,6 +60,10 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.note.archived {
+  opacity: 0.6;
+}
+
 
 .note-text {
   width: 100%;
