@@ -230,7 +230,12 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     >
       <div
         className="notes"
-        style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }}
+        style={{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+          // Expose the current zoom level as a CSS variable so child
+          // elements can adjust their styling based on it.
+          '--zoom': zoom,
+        } as React.CSSProperties}
       >
         {notes.map(note => (
           <StickyNote
