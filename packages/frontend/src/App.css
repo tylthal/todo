@@ -33,7 +33,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   word-break: break-word;
   touch-action: none;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .note.selected {
@@ -47,6 +47,7 @@
 .note:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   transform: scale(1.02);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 
