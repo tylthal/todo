@@ -1,7 +1,8 @@
 # Sticky Notes SaaS
 
-This repository contains the planning material for building a minimalist single
-page application for managing sticky notes.
+This repository contains a small proof-of-concept implementation and planning
+material for a minimalist sticky notes application.  The code demonstrates the
+core UI interactions while leaving room for a future AWS powered backend.
 
 ## Vision
 Create a clean and vibrant web application that lets users manage tasks and idea
@@ -22,8 +23,19 @@ s using interactive sticky notes.
 - **Backend:** Serverless architecture using AWS Lambda and API Gateway
 - **Database:** DynamoDB
 
-Longer term features like offline capability, integrations, and analytics are de
-tailed in `todo.md`.
+Longer term features like offline capability, integrations, and analytics are detailed in `todo.md`.
+
+## Current Demo
+
+The demo React application implements a basic sticky note board with the
+following capabilities:
+
+- Create multiple workspaces and switch between them
+- Drag, resize and color notes
+- Pan and zoom the canvas using the mouse or touch gestures
+
+The backend package only exposes a simple Lambda function returning a greeting
+and serves as a placeholder for future API development.
 
 ## Repository Structure
 
@@ -32,6 +44,14 @@ The project uses a monorepo managed with npm workspaces. Source code lives in `p
 - `packages/frontend` – React single page application
 - `packages/backend` – AWS Lambda handlers and infrastructure code
 - `packages/shared` – Reusable TypeScript utilities shared by other packages
+
+## Architecture Overview
+
+```
+Browser ──> Frontend (React / Vite) ──> Backend API (AWS Lambda)
+```
+
+The frontend is a Vite-based React app responsible for rendering notes and managing local state.  The backend folder contains a placeholder Lambda handler which would be expanded to persist notes in DynamoDB and provide authentication via Cognito.  Shared utilities live under the `shared` package and can be imported by both frontend and backend code.
 
 ## Local Development
 

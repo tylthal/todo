@@ -1,3 +1,6 @@
+// Utility helpers for translating between board coordinates when zooming and
+// panning the note canvas.
+
 export interface Point {
   x: number;
   y: number;

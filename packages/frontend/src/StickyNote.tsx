@@ -2,6 +2,10 @@ import React, { useRef, useState } from 'react';
 import { Note } from './App';
 import { ColorPalette } from './ColorPalette';
 
+// Interactive sticky note component that can be dragged, resized and edited.
+
+// Slightly darken or lighten a hex color by `amount`. Used to compute borders
+// that stand out against the note background.
 const adjustColor = (color: string, amount: number) => {
   let c = color.startsWith('#') ? color.slice(1) : color;
   if (c.length === 3) {
@@ -18,38 +22,56 @@ const adjustColor = (color: string, amount: number) => {
 };
 
 export interface StickyNoteProps {
+  /** Note data model */
   note: Note;
+  /** Called when the note position/size/content changes */
   onUpdate: (id: number, data: Partial<Note>) => void;
+  /** Archive or unarchive the note */
   onArchive: (id: number, archived: boolean) => void;
+  /** Whether this note is currently selected */
   selected: boolean;
+  /** Select this note */
   onSelect: (id: number) => void;
+  /** Board offset used to translate screen to board coordinates */
   offset: { x: number; y: number };
+  /** Current zoom level of the board */
   zoom: number;
 }
 
 export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, offset, zoom }) => {
+  // Track the current interaction mode (dragging vs resizing) and store
+  // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
+  // For drag operations we store the pointer's offset from the note's origin
   const offsetRef = useRef({ x: 0, y: 0 });
+  // For resize operations we remember the starting pointer position and note
+  // dimensions.
   const resizeRef = useRef({
     startX: 0,
     startY: 0,
     startWidth: 0,
     startHeight: 0,
   });
+  // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
 
+  // Convert screen coordinates to board coordinates taking zoom/offset into
+  // account.
   const toBoard = (clientX: number, clientY: number) => ({
     x: (clientX - offset.x) / zoom,
     y: (clientY - offset.y) / zoom,
   });
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Begin a drag or resize interaction. Determine which based on the element
+    // under the pointer.
     e.stopPropagation();
     onSelect(note.id);
     if (editing) return;
     const target = e.target as HTMLElement;
     const pos = toBoard(e.clientX, e.clientY);
     if (target.closest('.resize-handle')) {
+      // Start resizing from the current pointer position
       modeRef.current = 'resize';
       resizeRef.current = {
         startX: pos.x,
@@ -58,6 +80,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         startHeight: note.height,
       };
     } else {
+      // Start dragging
       modeRef.current = 'drag';
       offsetRef.current = { x: pos.x - note.x, y: pos.y - note.y };
     }
@@ -68,9 +91,14 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     if (editing) return;
     const pos = toBoard(e.clientX, e.clientY);
     if (modeRef.current === 'drag') {
-      onUpdate(note.id, { x: pos.x - offsetRef.current.x, y: pos.y - offsetRef.current.y });
+      // Move the note according to the pointer, keeping the initial offset.
+      onUpdate(note.id, {
+        x: pos.x - offsetRef.current.x,
+        y: pos.y - offsetRef.current.y,
+      });
     }
     if (modeRef.current === 'resize') {
+      // Resize the note based on pointer delta from the start of the gesture.
       const dx = pos.x - resizeRef.current.startX;
       const dy = pos.y - resizeRef.current.startY;
       const newWidth = Math.max(80, resizeRef.current.startWidth + dx);
@@ -80,19 +108,24 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   };
 
   const pointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Gesture finished
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Gesture aborted
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
   const handleChange = (value: string) => {
+    // Update the note content as the user types
     onUpdate(note.id, { content: value });
   };
 
+  // Render the note along with its controls. The styling is dynamic based on
+  // selection state and zoom level.
   return (
     <div
       className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
@@ -112,6 +145,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
+        // Buttons shown when the note is selected
         <div className="note-controls">
           <button
             className="archive note-control"
@@ -121,16 +155,19 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
           >
           <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
           </button>
+          {/* Palette for picking a different background color */}
           <ColorPalette
             value={note.color}
             onChange={(color) => onUpdate(note.id, { color })}
           />
+          {/* Drag handle used for resizing */}
           <div className="resize-handle note-control">
             <i className="fa-solid fa-up-right-and-down-left-from-center" />
           </div>
         </div>
       )}
       {editing ? (
+        // Editable textarea shown on double-click
         <textarea
           className="note-text"
           value={note.content}
@@ -139,6 +176,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
           autoFocus
         />
       ) : (
+        // Static display of note content
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
     </div>
