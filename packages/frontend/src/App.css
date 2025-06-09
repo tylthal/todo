@@ -107,10 +107,15 @@
 }
 
 .rotate-handle {
-  top: 4px;
-  left: 4px;
+  top: -20px;
+  left: -20px;
   background: transparent;
   box-shadow: none;
+  cursor: grab;
+}
+
+.rotate-handle:active {
+  cursor: grabbing;
 }
 
 .rotate-handle:hover {
