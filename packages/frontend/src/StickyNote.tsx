@@ -32,13 +32,15 @@ export interface StickyNoteProps {
   selected: boolean;
   /** Select this note */
   onSelect: (id: number) => void;
+  /** Send this note behind all others */
+  onSendToBack: (id: number) => void;
   /** Board offset used to translate screen to board coordinates */
   offset: { x: number; y: number };
   /** Current zoom level of the board */
   zoom: number;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, offset, zoom }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSendToBack, offset, zoom }) => {
   // Track the current interaction mode (dragging vs resizing) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
@@ -149,6 +151,14 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       {selected && !editing && (
         // Buttons shown when the note is selected
         <div className="note-controls">
+          <button
+            className="send-back note-control"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={() => onSendToBack(note.id)}
+            title="Send to Back"
+          >
+            <i className="fa-solid fa-layer-group" />
+          </button>
           <button
             className="archive note-control"
             onPointerDown={e => e.stopPropagation()}

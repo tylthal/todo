@@ -187,6 +187,16 @@ export class AppService extends EventEmitter {
     this.emitChange();
   }
 
+  /** Move a note to the back of the z-order */
+  sendNoteToBack(id: number): void {
+    const ws = this.currentWorkspace;
+    const note = ws.notes.find(n => n.id === id);
+    if (!note) return;
+    const minZ = Math.min(...ws.notes.map(n => n.zIndex));
+    note.zIndex = minZ - 1;
+    this.emitChange();
+  }
+
   /** Archive or unarchive a note */
   archiveNote(id: number, archived: boolean): void {
     this.updateNote(id, { archived });
