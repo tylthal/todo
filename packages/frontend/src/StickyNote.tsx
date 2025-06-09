@@ -151,27 +151,29 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       {selected && !editing && (
         // Buttons shown when the note is selected
         <div className="note-controls">
-          <button
-            className={`pin-back note-control${note.pinned ? ' active' : ''}`}
-            onPointerDown={e => e.stopPropagation()}
-            onClick={() => onSetPinned(note.id, !note.pinned)}
-            title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
-          >
-            <i className="fa-solid fa-thumbtack" />
-          </button>
-          <button
-            className="archive note-control"
-            onPointerDown={e => e.stopPropagation()}
-            onClick={() => onArchive(note.id, !note.archived)}
-            title={note.archived ? 'Unarchive' : 'Archive'}
-          >
-          <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
-          </button>
-          {/* Palette for picking a different background color */}
-          <ColorPalette
-            value={note.color}
-            onChange={(color) => onUpdate(note.id, { color })}
-          />
+          <div className="note-toolbar">
+            <button
+              className={`pin-back note-control${note.pinned ? ' active' : ''}`}
+              onPointerDown={e => e.stopPropagation()}
+              onClick={() => onSetPinned(note.id, !note.pinned)}
+              title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
+            >
+              <i className="fa-solid fa-thumbtack" />
+            </button>
+            {/* Palette for picking a different background color */}
+            <ColorPalette
+              value={note.color}
+              onChange={(color) => onUpdate(note.id, { color })}
+            />
+            <button
+              className="archive note-control"
+              onPointerDown={e => e.stopPropagation()}
+              onClick={() => onArchive(note.id, !note.archived)}
+              title={note.archived ? 'Unarchive' : 'Archive'}
+            >
+              <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
+            </button>
+          </div>
           {/* Drag handle used for resizing */}
           <div className="resize-handle note-control">
             <i className="fa-solid fa-up-right-and-down-left-from-center" />

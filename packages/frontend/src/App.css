@@ -107,6 +107,19 @@
   z-index: 2;
 }
 
+.note-toolbar {
+  position: absolute;
+  top: calc(4px / var(--zoom));
+  right: calc(4px / var(--zoom));
+  display: flex;
+  gap: calc(4px / var(--zoom));
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.9);
+  padding: calc(4px / var(--zoom));
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .note-drag-target {
   position: absolute;
   inset: 0;
@@ -140,13 +153,11 @@
 }
 
 .note .archive {
-  top: calc(4px / var(--zoom));
-  right: calc(4px / var(--zoom));
+  /* positioning handled by toolbar container */
 }
 
 .note .pin-back {
-  top: calc(4px / var(--zoom));
-  right: calc(40px / var(--zoom));
+  /* positioning handled by toolbar container */
 }
 
 .note-control.active {
@@ -159,9 +170,7 @@
 
 
 .color-palette {
-  position: absolute;
-  bottom: calc(4px / var(--zoom));
-  left: calc(4px / var(--zoom));
+  position: relative;
   display: flex;
   gap: calc(4px / var(--zoom));
   background: rgba(255, 255, 255, 0.9);
@@ -173,9 +182,7 @@
 }
 
 .palette-toggle {
-  position: absolute;
-  bottom: calc(4px / var(--zoom));
-  left: calc(4px / var(--zoom));
+  position: relative;
   width: calc(32px / var(--zoom));
   height: calc(32px / var(--zoom));
 }
