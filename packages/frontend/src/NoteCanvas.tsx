@@ -39,6 +39,24 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     setZoom(clamped);
   };
 
+  const fitToScreen = () => {
+    const board = boardRef.current;
+    if (!board || notes.length === 0) return;
+    const rect = board.getBoundingClientRect();
+    const minX = Math.min(...notes.map(n => n.x));
+    const minY = Math.min(...notes.map(n => n.y));
+    const maxX = Math.max(...notes.map(n => n.x + n.width));
+    const maxY = Math.max(...notes.map(n => n.y + n.height));
+    const width = maxX - minX || rect.width;
+    const height = maxY - minY || rect.height;
+    const scale = clampZoom(Math.min(rect.width / width, rect.height / height));
+    zoomRef.current = scale;
+    setZoom(scale);
+    const x = (rect.width - width * scale) / 2 - minX * scale;
+    const y = (rect.height - height * scale) / 2 - minY * scale;
+    setOffset({ x, y });
+  };
+
   const zoomRef = useRef(zoom);
 
   useEffect(() => {
@@ -137,7 +155,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           />
         ))}
       </div>
-      <div className="zoom-controls">
+      <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
         <button onClick={() => applyZoom(zoomRef.current * 0.9)} title="Zoom Out">
           <i className="fa-solid fa-magnifying-glass-minus" />
         </button>
@@ -151,6 +169,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           onChange={e => applyZoom(Number(e.target.value))}
         />
         <div className="zoom-percentage">{Math.round(zoom * 100)}%</div>
+        <button onClick={fitToScreen} title="Fit to Screen">
+          <i className="fa-solid fa-up-right-and-down-left-from-center" />
+        </button>
         <button onClick={() => applyZoom(zoomRef.current * 1.1)} title="Zoom In">
           <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
