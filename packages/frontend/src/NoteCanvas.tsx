@@ -4,15 +4,27 @@ import './App.css';
 import { Note } from './App';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
+// Canvas that renders all sticky notes for the active workspace. Handles panning
+// and zooming interactions as well as delegating updates to individual notes.
+
 export interface NoteCanvasProps {
+  /** Notes to display */
   notes: Note[];
+  /** Update a note's data */
   onUpdate: (id: number, data: Partial<Note>) => void;
+  /** Archive/unarchive a note */
   onArchive: (id: number, archived: boolean) => void;
+  /** Id of the currently selected note */
   selectedId: number | null;
+  /** Select a note or clear the selection */
   onSelect: (id: number | null) => void;
+  /** Current pan offset of the board */
   offset: { x: number; y: number };
+  /** Set a new pan offset */
   setOffset: (pos: { x: number; y: number }) => void;
+  /** Current zoom level */
   zoom: number;
+  /** Set a new zoom level */
   setZoom: (z: number) => void;
 }
 
@@ -27,8 +39,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   zoom,
   setZoom
 }) => {
+  // Temporary state used while the user is panning the board with a pointer
   const panRef = useRef<{ startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
   const [panning, setPanning] = useState(false);
+  // Track active touch points for pinch gestures
   const touchesRef = useRef(new Map<number, {x: number; y: number}>());
   // Information about an active pinch/gesture zoom
   const pinchRef = useRef<{
@@ -37,9 +51,12 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     center: { x: number; y: number }; // screen coordinates of the gesture center
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  // Mirror of the offset prop used inside gesture handlers
   const offsetRef = useRef(offset);
   const [mousePos, setMousePos] = useState<{x: number; y: number} | null>(null);
 
+  // Utility to translate screen coordinates to board coordinates based on the
+  // current zoom and pan offset.
   const toBoardCoords = (clientX: number, clientY: number) => {
     const board = boardRef.current;
     if (!board) return { x: 0, y: 0 };
@@ -50,6 +67,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     };
   };
 
+  // Keep the refs in sync with the props so event handlers always use the
+  // latest values.
   useEffect(() => {
     offsetRef.current = offset;
   }, [offset]);
@@ -76,6 +95,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const fitToScreen = () => {
+    // Calculate a zoom level that fits all notes within the viewport
     const board = boardRef.current;
     if (!board || notes.length === 0) return;
     const rect = board.getBoundingClientRect();
@@ -96,6 +116,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const zoomRef = useRef(zoom);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Start panning the board
     onSelect(null);
     setMousePos(toBoardCoords(e.clientX, e.clientY));
     panRef.current = {
@@ -118,6 +139,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Update mouse position and handle dragging or pinch-zoom gestures
     setMousePos(toBoardCoords(e.clientX, e.clientY));
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -145,6 +167,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const pointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    // End of panning or gesture
     panRef.current = null;
     setPanning(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
@@ -165,6 +188,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     deltaY: number,
     target: HTMLElement
   ) => {
+    // Wheel zoom increments the zoom level while keeping the cursor position
+    // stationary relative to the board.
     const factor = deltaY < 0 ? 1.1 : 0.9;
     const newZoom = clampZoom(zoomRef.current * factor);
     const pivot = { x: clientX, y: clientY };
@@ -179,6 +204,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   // Re-register wheel zoom handler whenever the active workspace changes so the
   // correct setters are used
   useEffect(() => {
+    // Support trackpad pinch gestures on Safari by listening to gesture events
     const board = boardRef.current;
     if (!board) return;
     const onWheel = (e: WheelEvent) => {
@@ -197,6 +223,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     if (!board) return;
     const gestureStart = (e: any) => {
       e.preventDefault();
+      // Start a two-finger pinch gesture
       pinchRef.current = {
         start: 1,
         zoom: zoomRef.current,
@@ -206,6 +233,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     const gestureChange = (e: any) => {
       if (!pinchRef.current) return;
       e.preventDefault();
+      // Adjust zoom according to the gesture's scale factor
       const newZoom = pinchRef.current.zoom * e.scale;
       const clamped = clampZoom(newZoom);
       const pivot = pinchRef.current.center;
@@ -216,6 +244,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       zoomRef.current = clamped;
     };
     const gestureEnd = () => {
+      // Gesture finished
       pinchRef.current = null;
     };
     board.addEventListener('gesturestart', gestureStart as EventListener);
@@ -241,6 +270,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       <div
         className="notes"
         style={{
+          // Apply the board pan/zoom via CSS transforms
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
           // Expose the current zoom level as a CSS variable so child
           // elements can adjust their styling based on it.
@@ -260,6 +290,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           />
         ))}
       </div>
+      {/* Overlay with buttons and slider to control zoom */}
       <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
         <button onClick={() => applyZoom(zoomRef.current * 0.9)} title="Zoom Out">
           <i className="fa-solid fa-magnifying-glass-minus" />
@@ -281,6 +312,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
       </div>
+      {/* Useful coordinates for development */}
       <div className="debug-info">
         {`top-left: ${Math.round(-offset.x / zoom)}, ${Math.round(-offset.y / zoom)} | `}
         {mousePos ? `mouse: ${Math.round(mousePos.x)}, ${Math.round(mousePos.y)}` : 'mouse: -,-'}
