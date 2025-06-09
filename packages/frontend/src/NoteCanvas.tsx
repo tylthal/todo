@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
 import { Note } from './App';
-import { clampZoom, zoomAroundCenter, zoomAroundPoint } from './zoomUtils';
+import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
 export interface NoteCanvasProps {
   notes: Note[];
@@ -257,8 +257,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         <input
           className="zoom-slider"
           type="range"
-          min="0.5"
-          max="3"
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
           step="0.1"
           value={zoom}
           onChange={e => applyZoom(Number(e.target.value))}
