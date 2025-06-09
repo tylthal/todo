@@ -54,6 +54,11 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     offsetRef.current = offset;
   }, [offset]);
 
+  // Keep the internal zoom reference in sync with the active workspace's zoom
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
   /**
    * Zoom using the UI controls. The view should stay centered on the screen
    * while zooming, so we adjust the offset accordingly using the utility
