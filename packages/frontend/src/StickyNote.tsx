@@ -170,7 +170,17 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       createPortal(
         <div
           className="note-controls"
-          style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
+          style={{
+            left: note.x,
+            top: note.y,
+            width: note.width,
+            height: note.height,
+            pointerEvents: 'auto',
+          }}
+          onPointerDown={pointerDown}
+          onPointerMove={pointerMove}
+          onPointerUp={pointerUp}
+          onPointerCancel={pointerCancel}
         >
           <div className="note-toolbar">
             <button
