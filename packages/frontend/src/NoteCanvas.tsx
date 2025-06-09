@@ -29,7 +29,12 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const panRef = useRef<{ startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
   const [panning, setPanning] = useState(false);
   const touchesRef = useRef(new Map<number, {x: number; y: number}>());
-  const pinchRef = useRef<{ start: number; zoom: number } | null>(null);
+  const pinchRef = useRef<{
+    start: number;
+    zoom: number;
+    centerScreen: { x: number; y: number };
+    centerBoard: { x: number; y: number };
+  } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
   const clampZoom = (z: number) => Math.max(0.5, Math.min(3, z));
@@ -62,12 +67,14 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   useEffect(() => {
     const prev = zoomRef.current;
     if (prev === zoom) return;
-    const board = boardRef.current;
-    if (board) {
-      const rect = board.getBoundingClientRect();
-      const dx = rect.width / 2 * (1 / zoom - 1 / prev);
-      const dy = rect.height / 2 * (1 / zoom - 1 / prev);
-      setOffset(o => ({ x: o.x + dx, y: o.y + dy }));
+    if (!pinchRef.current) {
+      const board = boardRef.current;
+      if (board) {
+        const rect = board.getBoundingClientRect();
+        const dx = (rect.width / 2) * (1 / zoom - 1 / prev);
+        const dy = (rect.height / 2) * (1 / zoom - 1 / prev);
+        setOffset(o => ({ x: o.x + dx, y: o.y + dy }));
+      }
     }
     zoomRef.current = zoom;
   }, [zoom, setOffset]);
@@ -86,9 +93,17 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (touchesRef.current.size === 2) {
         const [a, b] = Array.from(touchesRef.current.values());
+        const start = Math.hypot(a.x - b.x, a.y - b.y);
+        const centerScreen = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        const centerBoard = {
+          x: (centerScreen.x - offset.x) / zoomRef.current,
+          y: (centerScreen.y - offset.y) / zoomRef.current,
+        };
         pinchRef.current = {
-          start: Math.hypot(a.x - b.x, a.y - b.y),
+          start,
           zoom: zoomRef.current,
+          centerScreen,
+          centerBoard,
         };
       }
     }
@@ -101,7 +116,13 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         const [a, b] = Array.from(touchesRef.current.values());
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         const newZoom = pinchRef.current.zoom * (dist / pinchRef.current.start);
-        applyZoom(newZoom);
+        const clamped = clampZoom(newZoom);
+        const { centerScreen, centerBoard } = pinchRef.current;
+        setZoom(clamped);
+        setOffset({
+          x: centerScreen.x - centerBoard.x * clamped,
+          y: centerScreen.y - centerBoard.y * clamped,
+        });
         return;
       }
     }
