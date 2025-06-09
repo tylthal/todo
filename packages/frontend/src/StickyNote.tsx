@@ -23,9 +23,11 @@ export interface StickyNoteProps {
   onArchive: (id: number, archived: boolean) => void;
   selected: boolean;
   onSelect: (id: number) => void;
+  offset: { x: number; y: number };
+  zoom: number;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, offset, zoom }) => {
   const modeRef = useRef<'drag' | 'resize' | null>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
   const resizeRef = useRef({
@@ -36,34 +38,41 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   });
   const [editing, setEditing] = useState(false);
 
+  const toBoard = (clientX: number, clientY: number) => ({
+    x: (clientX - offset.x) / zoom,
+    y: (clientY - offset.y) / zoom,
+  });
+
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     onSelect(note.id);
     if (editing) return;
     const target = e.target as HTMLElement;
+    const pos = toBoard(e.clientX, e.clientY);
     if (target.closest('.resize-handle')) {
       modeRef.current = 'resize';
       resizeRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
+        startX: pos.x,
+        startY: pos.y,
         startWidth: note.width,
         startHeight: note.height,
       };
     } else {
       modeRef.current = 'drag';
-      offsetRef.current = { x: e.clientX - note.x, y: e.clientY - note.y };
+      offsetRef.current = { x: pos.x - note.x, y: pos.y - note.y };
     }
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (editing) return;
+    const pos = toBoard(e.clientX, e.clientY);
     if (modeRef.current === 'drag') {
-      onUpdate(note.id, { x: e.clientX - offsetRef.current.x, y: e.clientY - offsetRef.current.y });
+      onUpdate(note.id, { x: pos.x - offsetRef.current.x, y: pos.y - offsetRef.current.y });
     }
     if (modeRef.current === 'resize') {
-      const dx = e.clientX - resizeRef.current.startX;
-      const dy = e.clientY - resizeRef.current.startY;
+      const dx = pos.x - resizeRef.current.startX;
+      const dy = pos.y - resizeRef.current.startY;
       const newWidth = Math.max(80, resizeRef.current.startWidth + dx);
       const newHeight = Math.max(60, resizeRef.current.startHeight + dy);
       onUpdate(note.id, { width: newWidth, height: newHeight });

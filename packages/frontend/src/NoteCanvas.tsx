@@ -11,6 +11,8 @@ export interface NoteCanvasProps {
   onSelect: (id: number | null) => void;
   offset: { x: number; y: number };
   setOffset: (pos: { x: number; y: number }) => void;
+  zoom: number;
+  setZoom: (z: number) => void;
 }
 
 export const NoteCanvas: React.FC<NoteCanvasProps> = ({
@@ -20,10 +22,14 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   selectedId,
   onSelect,
   offset,
-  setOffset
+  setOffset,
+  zoom,
+  setZoom
 }) => {
   const panRef = useRef<{ startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
   const [panning, setPanning] = useState(false);
+  const touchesRef = useRef(new Map<number, {x: number; y: number}>());
+  const pinchRef = useRef<{ start: number; zoom: number } | null>(null);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     onSelect(null);
@@ -35,10 +41,30 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     };
     setPanning(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    if (e.pointerType === 'touch') {
+      touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touchesRef.current.size === 2) {
+        const [a, b] = Array.from(touchesRef.current.values());
+        pinchRef.current = {
+          start: Math.hypot(a.x - b.x, a.y - b.y),
+          zoom,
+        };
+      }
+    }
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panRef.current) return;
+    if (e.pointerType === 'touch') {
+      touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinchRef.current && touchesRef.current.size === 2) {
+        const [a, b] = Array.from(touchesRef.current.values());
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        const newZoom = pinchRef.current.zoom * (dist / pinchRef.current.start);
+        setZoom(Math.max(0.5, Math.min(3, newZoom)));
+        return;
+      }
+    }
+    if (!panRef.current || pinchRef.current) return;
     const dx = e.clientX - panRef.current.startX;
     const dy = e.clientY - panRef.current.startY;
     setOffset({ x: panRef.current.startOffsetX + dx, y: panRef.current.startOffsetY + dy });
@@ -48,6 +74,17 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     panRef.current = null;
     setPanning(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    touchesRef.current.delete(e.pointerId);
+    if (touchesRef.current.size < 2) {
+      pinchRef.current = null;
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    setZoom(z => Math.max(0.5, Math.min(3, z * factor)));
   };
 
   return (
@@ -57,8 +94,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerUp}
+      onWheel={handleWheel}
     >
-      <div className="notes" style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}>
+      <div className="notes" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }}>
         {notes.map(note => (
           <StickyNote
             key={note.id}
@@ -67,8 +105,27 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             onArchive={onArchive}
             selected={selectedId === note.id}
             onSelect={onSelect}
+            offset={offset}
+            zoom={zoom}
           />
         ))}
+      </div>
+      <div className="zoom-controls">
+        <button onClick={() => setZoom(Math.min(3, zoom + 0.1))} title="Zoom In">
+          <i className="fa-solid fa-magnifying-glass-plus" />
+        </button>
+        <input
+          className="zoom-slider"
+          type="range"
+          min="0.5"
+          max="3"
+          step="0.1"
+          value={zoom}
+          onChange={e => setZoom(Number(e.target.value))}
+        />
+        <button onClick={() => setZoom(Math.max(0.5, zoom - 0.1))} title="Zoom Out">
+          <i className="fa-solid fa-magnifying-glass-minus" />
+        </button>
       </div>
     </div>
   );
