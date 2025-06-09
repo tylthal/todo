@@ -254,3 +254,9 @@
 .zoom-slider {
   width: 100px;
 }
+
+.zoom-percentage {
+  min-width: 40px;
+  text-align: center;
+  font-size: 0.8rem;
+}
