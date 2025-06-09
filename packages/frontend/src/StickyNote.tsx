@@ -75,6 +75,11 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
+  const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    modeRef.current = null;
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+  };
+
   const handleChange = (value: string) => {
     onUpdate(note.id, { content: value });
   };
@@ -94,6 +99,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
+      onPointerCancel={pointerCancel}
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
