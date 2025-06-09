@@ -126,6 +126,17 @@ const App: React.FC = () => {
     setSelectedId(null);
   };
 
+  const renameWorkspace = (id: number) => {
+    const wsIndex = workspaces.findIndex(w => w.id === id);
+    const ws = workspaces[wsIndex];
+    if (!ws || ws.id === 1) return;
+    const name = window.prompt('Workspace name', ws.name);
+    if (!name || name.trim() === '') return;
+    setWorkspaces(all =>
+      all.map((w, i) => (i === wsIndex ? { ...w, name: name.trim() } : w))
+    );
+  };
+
   const switchWorkspace = (id: number) => {
     setCurrentWorkspaceId(id);
     setSelectedId(null);
@@ -143,6 +154,7 @@ const App: React.FC = () => {
           currentWorkspaceId={currentWorkspaceId}
           onCreateWorkspace={createWorkspace}
           onSwitchWorkspace={switchWorkspace}
+          onRenameWorkspace={renameWorkspace}
         />
         <NoteCanvas
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
