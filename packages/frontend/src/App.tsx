@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from "react";
 import { UserProvider } from './UserContext';
 import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
+import { KeyWatcher } from "./services/KeyWatcher";
 import { appService, AppState, Note } from './services/AppService';
 import './App.css';
 
 const App: React.FC = () => {
+  const selectedRef = useRef<number | null>(null);
   const [appState, setAppState] = useState<AppState>(appService.getState());
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => appService.subscribe(setAppState), []);
+  useEffect(() => { selectedRef.current = selectedId; }, [selectedId]);
 
   const { workspaces, currentWorkspaceId } = appState;
 
@@ -40,6 +43,14 @@ const App: React.FC = () => {
       appService.bringNoteToFront(id);
     }
   };
+  useEffect(() => {
+    const watcher = new KeyWatcher(appService, {
+      getSelectedId: () => selectedRef.current,
+      selectNote: handleSelect,
+    });
+    watcher.start();
+    return () => watcher.stop();
+  }, []);
 
   const toggleShowArchived = () => {
     setShowArchived(prev => !prev);
