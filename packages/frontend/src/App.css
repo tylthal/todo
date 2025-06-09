@@ -35,7 +35,6 @@
   height: 100%;
   --zoom: 1;
   transform-origin: top left;
-  transition: transform 0.15s ease;
 }
 
 .note {
