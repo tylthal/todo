@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [zCounter, setZCounter] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const [showArchived, setShowArchived] = useState(false);
 
   const addNote = () => {
@@ -79,6 +80,8 @@ const App: React.FC = () => {
           onSelect={handleSelect}
           offset={offset}
           setOffset={setOffset}
+          zoom={zoom}
+          setZoom={setZoom}
         />
       </div>
     </UserProvider>
