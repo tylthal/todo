@@ -14,8 +14,8 @@ export interface NoteCanvasProps {
   onUpdate: (id: number, data: Partial<Note>) => void;
   /** Archive/unarchive a note */
   onArchive: (id: number, archived: boolean) => void;
-  /** Send a note behind all others */
-  onSendToBack: (id: number) => void;
+  /** Pin or unpin a note behind all others */
+  onSetPinned: (id: number, pinned: boolean) => void;
   /** Id of the currently selected note */
   selectedId: number | null;
   /** Select a note or clear the selection */
@@ -34,7 +34,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   notes,
   onUpdate,
   onArchive,
-  onSendToBack,
+  onSetPinned,
   selectedId,
   onSelect,
   offset,
@@ -286,7 +286,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             note={note}
             onUpdate={onUpdate}
             onArchive={onArchive}
-            onSendToBack={onSendToBack}
+            onSetPinned={onSetPinned}
             selected={selectedId === note.id}
             onSelect={onSelect}
             offset={offset}
