@@ -6,6 +6,7 @@
   "scripts": {
     "dev:frontend": "npm start --workspace packages/frontend",
     "dev:backend": "npm start --workspace packages/backend",
-    "build": "npm run build --workspaces"
+    "build": "npm run build --workspaces",
+    "deploy:frontend": "node ./scripts/deploy_frontend.js"
   }
 }

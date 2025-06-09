@@ -93,3 +93,67 @@ production bundle for the frontend only, run:
 ```bash
 npm run build --workspace packages/frontend
 ```
+
+## Deployment
+
+Infrastructure is managed with [Terraform](https://www.terraform.io/).  The
+configuration lives in the `infra/` directory and provisions an S3 bucket, a
+CloudFront distribution and Route53 record pointing `notes.thalman.org` to the
+distribution.
+
+### Prerequisites
+
+- [Terraform 1.5+](https://www.terraform.io/downloads) installed
+- An AWS account with credentials configured via environment variables or an
+  AWS profile
+- A Route53 hosted zone for `thalman.org` must already exist
+
+### Deploying infrastructure
+
+1. Change into the infrastructure directory and initialize Terraform:
+   ```bash
+   cd infra
+   terraform init
+   ```
+2. Apply the configuration, providing a unique S3 bucket name and AWS region:
+   ```bash
+   terraform apply -var="bucket_name=<your-bucket>" -var="aws_region=<region>"
+   ```
+   Terraform will output the CloudFront distribution ID which is required for
+   frontend deployments.
+
+### Deploying the frontend
+
+Once the infrastructure is created you can build and upload the frontend using
+the following command from the repository root:
+
+```bash
+npm run deploy:frontend
+```
+
+This Node script runs on Windows, macOS and Linux.
+
+The command expects `S3_BUCKET` and `CLOUDFRONT_DISTRIBUTION_ID` environment
+variables to be set so it can sync the build artifacts to S3 and invalidate the
+CloudFront cache. Example commands to set them from Terraform outputs:
+
+For Bash or other Unix shells:
+
+```bash
+export S3_BUCKET=$(terraform -chdir=infra output -raw bucket_name)
+export CLOUDFRONT_DISTRIBUTION_ID=$(terraform -chdir=infra output -raw cloudfront_distribution_id)
+```
+
+For PowerShell:
+
+```powershell
+$Env:S3_BUCKET = terraform -chdir=infra output -raw bucket_name
+$Env:CLOUDFRONT_DISTRIBUTION_ID = terraform -chdir=infra output -raw cloudfront_distribution_id
+```
+
+For Windows cmd.exe:
+
+```cmd
+set S3_BUCKET="$(terraform -chdir=infra output -raw bucket_name)"
+set CLOUDFRONT_DISTRIBUTION_ID="$(terraform -chdir=infra output -raw cloudfront_distribution_id)"
+```
