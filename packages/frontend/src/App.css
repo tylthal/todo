@@ -3,6 +3,7 @@
   padding: 1rem;
   text-align: left;
   flex: 1;
+  position: relative;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
