@@ -104,6 +104,14 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 2;
+}
+
+.note-drag-target {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.01);
+  z-index: 1;
 }
 
 .note-control {

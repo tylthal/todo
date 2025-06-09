@@ -143,7 +143,9 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onPointerUp={pointerUp}
       onPointerCancel={pointerCancel}
       onDoubleClick={() => setEditing(true)}
+      draggable={false}
     >
+      {!editing && <div className="note-drag-target" draggable={false} onDragStart={e => e.preventDefault()} />}
       {selected && !editing && (
         // Buttons shown when the note is selected
         <div className="note-controls">
