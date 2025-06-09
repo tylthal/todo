@@ -10,7 +10,7 @@ export const AccountControls: React.FC<AccountControlsProps> = ({ onAddNote }) =
 
   return (
     <div className="account">
-      <button className="add-note" onClick={onAddNote}><i className="fa fa-plus" /> Add Note</button>
+      <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
       {user ? (
         <>
           <span className="welcome">Hello, {user.name}</span>

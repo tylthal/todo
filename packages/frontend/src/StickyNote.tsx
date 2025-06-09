@@ -110,20 +110,20 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
             onClick={() => onArchive(note.id)}
             title="Archive"
           >
-            <i className="fa fa-box-archive" />
+          <i className="fa-solid fa-box-archive" />
           </button>
           <div
             className="rotate-handle note-control"
             title="Rotate"
           >
-            <i className="fa fa-rotate" />
+            <i className="fa-solid fa-rotate" />
           </div>
           <ColorPalette
             value={note.color}
             onChange={(color) => onUpdate(note.id, { color })}
           />
           <div className="resize-handle note-control">
-            <i className="fa fa-up-right-and-down-left-from-center" />
+            <i className="fa-solid fa-up-right-and-down-left-from-center" />
           </div>
         </div>
       )}

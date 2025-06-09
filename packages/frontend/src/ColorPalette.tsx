@@ -28,7 +28,7 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({ value, onChange }) =
           onClick={() => setOpen(true)}
           title="Change color"
         >
-          <i className="fa fa-palette" />
+          <i className="fa-solid fa-palette" />
         </button>
       </div>
     );
