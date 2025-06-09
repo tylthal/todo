@@ -144,6 +144,11 @@
   right: calc(4px / var(--zoom));
 }
 
+.note .send-back {
+  top: calc(4px / var(--zoom));
+  right: calc(40px / var(--zoom));
+}
+
 
 .color-palette {
   position: absolute;

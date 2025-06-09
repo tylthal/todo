@@ -25,6 +25,10 @@ const App: React.FC = () => {
     appService.updateNote(id, data);
   };
 
+  const sendNoteToBack = (id: number) => {
+    appService.sendNoteToBack(id);
+  };
+
   const handleSelect = (id: number | null) => {
     if (id === null) {
       setSelectedId(null);
@@ -82,6 +86,7 @@ const App: React.FC = () => {
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
           onUpdate={updateNote}
           onArchive={(id, archived) => appService.archiveNote(id, archived)}
+          onSendToBack={sendNoteToBack}
           selectedId={selectedId}
           onSelect={handleSelect}
           offset={workspace.canvas.offset}
