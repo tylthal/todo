@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
 import { Note } from './App';
@@ -32,17 +32,27 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const pinchRef = useRef<{ start: number; zoom: number } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
+  const clampZoom = (z: number) => Math.max(0.5, Math.min(3, z));
+
   const applyZoom = (newZoom: number) => {
-    const clamped = Math.max(0.5, Math.min(3, newZoom));
+    const clamped = clampZoom(newZoom);
+    setZoom(clamped);
+  };
+
+  const zoomRef = useRef(zoom);
+
+  useEffect(() => {
+    const prev = zoomRef.current;
+    if (prev === zoom) return;
     const board = boardRef.current;
     if (board) {
       const rect = board.getBoundingClientRect();
-      const dx = rect.width / 2 * (1 / clamped - 1 / zoom);
-      const dy = rect.height / 2 * (1 / clamped - 1 / zoom);
-      setOffset({ x: offset.x + dx, y: offset.y + dy });
+      const dx = rect.width / 2 * (1 / zoom - 1 / prev);
+      const dy = rect.height / 2 * (1 / zoom - 1 / prev);
+      setOffset(o => ({ x: o.x + dx, y: o.y + dy }));
     }
-    setZoom(clamped);
-  };
+    zoomRef.current = zoom;
+  }, [zoom, setOffset]);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     onSelect(null);
@@ -60,7 +70,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         const [a, b] = Array.from(touchesRef.current.values());
         pinchRef.current = {
           start: Math.hypot(a.x - b.x, a.y - b.y),
-          zoom,
+          zoom: zoomRef.current,
         };
       }
     }
@@ -97,7 +107,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     if (!e.ctrlKey) return;
     e.preventDefault();
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
-    applyZoom(zoom * factor);
+    applyZoom(zoomRef.current * factor);
   };
 
   return (
@@ -128,7 +138,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         ))}
       </div>
       <div className="zoom-controls">
-        <button onClick={() => applyZoom(zoom * 0.9)} title="Zoom Out">
+        <button onClick={() => applyZoom(zoomRef.current * 0.9)} title="Zoom Out">
           <i className="fa-solid fa-magnifying-glass-minus" />
         </button>
         <input
@@ -141,7 +151,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           onChange={e => applyZoom(Number(e.target.value))}
         />
         <div className="zoom-percentage">{Math.round(zoom * 100)}%</div>
-        <button onClick={() => applyZoom(zoom * 1.1)} title="Zoom In">
+        <button onClick={() => applyZoom(zoomRef.current * 1.1)} title="Zoom In">
           <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
       </div>
