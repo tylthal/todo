@@ -29,6 +29,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   const modeRef = useRef<'drag' | 'resize' | 'rotate' | null>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
   const rotateRef = useRef({ startAngle: 0, startPointerAngle: 0 });
+  const resizeRef = useRef({
+    startX: 0,
+    startY: 0,
+    startWidth: 0,
+    startHeight: 0,
+    rotation: 0,
+  });
   const [editing, setEditing] = useState(false);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -38,6 +45,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     const target = e.target as HTMLElement;
     if (target.closest('.resize-handle')) {
       modeRef.current = 'resize';
+      resizeRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: note.width,
+        startHeight: note.height,
+        rotation: note.rotation,
+      };
     } else if (target.closest('.rotate-handle')) {
       modeRef.current = 'rotate';
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -60,8 +74,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onUpdate(note.id, { x: e.clientX - offsetRef.current.x, y: e.clientY - offsetRef.current.y });
     }
     if (modeRef.current === 'resize') {
-      const newWidth = Math.max(80, e.clientX - note.x);
-      const newHeight = Math.max(60, e.clientY - note.y);
+      const dx = e.clientX - resizeRef.current.startX;
+      const dy = e.clientY - resizeRef.current.startY;
+      const angle = (resizeRef.current.rotation * Math.PI) / 180;
+      const localDx = dx * Math.cos(angle) + dy * Math.sin(angle);
+      const localDy = -dx * Math.sin(angle) + dy * Math.cos(angle);
+      const newWidth = Math.max(80, resizeRef.current.startWidth + localDx);
+      const newHeight = Math.max(60, resizeRef.current.startHeight + localDy);
       onUpdate(note.id, { width: newWidth, height: newHeight });
     }
     if (modeRef.current === 'rotate') {
