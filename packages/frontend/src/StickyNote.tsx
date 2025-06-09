@@ -26,8 +26,9 @@ export interface StickyNoteProps {
 }
 
 export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect }) => {
-  const modeRef = useRef<'drag' | 'resize' | null>(null);
+  const modeRef = useRef<'drag' | 'resize' | 'rotate' | null>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
+  const rotateRef = useRef({ startAngle: 0, startPointerAngle: 0 });
   const [editing, setEditing] = useState(false);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -35,8 +36,17 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     onSelect(note.id);
     if (editing) return;
     const target = e.target as HTMLElement;
-    if (target.classList.contains('resize-handle')) {
+    if (target.closest('.resize-handle')) {
       modeRef.current = 'resize';
+    } else if (target.closest('.rotate-handle')) {
+      modeRef.current = 'rotate';
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      rotateRef.current = {
+        startAngle: note.rotation,
+        startPointerAngle: Math.atan2(e.clientY - centerY, e.clientX - centerX),
+      };
     } else {
       modeRef.current = 'drag';
       offsetRef.current = { x: e.clientX - note.x, y: e.clientY - note.y };
@@ -53,6 +63,15 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       const newWidth = Math.max(80, e.clientX - note.x);
       const newHeight = Math.max(60, e.clientY - note.y);
       onUpdate(note.id, { width: newWidth, height: newHeight });
+    }
+    if (modeRef.current === 'rotate') {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+      const deg = rotateRef.current.startAngle +
+        (angle - rotateRef.current.startPointerAngle) * (180 / Math.PI);
+      onUpdate(note.id, { rotation: deg });
     }
   };
 
@@ -93,14 +112,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
           >
             <i className="fa fa-box-archive" />
           </button>
-          <button
+          <div
             className="rotate-handle note-control"
-            onPointerDown={e => e.stopPropagation()}
-            onClick={() => onUpdate(note.id, { rotation: note.rotation + 15 })}
             title="Rotate"
           >
             <i className="fa fa-rotate" />
-          </button>
+          </div>
           <ColorPalette
             value={note.color}
             onChange={(color) => onUpdate(note.id, { color })}

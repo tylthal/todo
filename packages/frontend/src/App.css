@@ -101,6 +101,12 @@
 .rotate-handle {
   top: 4px;
   left: 4px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rotate-handle:hover {
+  color: #3b82f6;
 }
 
 .color-palette {
