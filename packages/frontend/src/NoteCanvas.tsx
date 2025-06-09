@@ -38,6 +38,17 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(offset);
+  const [mousePos, setMousePos] = useState<{x: number; y: number} | null>(null);
+
+  const toBoardCoords = (clientX: number, clientY: number) => {
+    const board = boardRef.current;
+    if (!board) return { x: 0, y: 0 };
+    const rect = board.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - offsetRef.current.x) / zoomRef.current,
+      y: (clientY - rect.top - offsetRef.current.y) / zoomRef.current,
+    };
+  };
 
   useEffect(() => {
     offsetRef.current = offset;
@@ -79,6 +90,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     onSelect(null);
+    setMousePos(toBoardCoords(e.clientX, e.clientY));
     panRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -99,6 +111,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    setMousePos(toBoardCoords(e.clientX, e.clientY));
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pinchRef.current && touchesRef.current.size === 2) {
@@ -128,6 +141,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     panRef.current = null;
     setPanning(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    setMousePos(toBoardCoords(e.clientX, e.clientY));
     touchesRef.current.delete(e.pointerId);
     if (touchesRef.current.size < 2) {
       pinchRef.current = null;
@@ -212,6 +226,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerUp}
+      onPointerLeave={() => setMousePos(null)}
     >
       <div
         className="notes"
@@ -250,6 +265,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         <button onClick={() => applyZoom(zoomRef.current * 1.1)} title="Zoom In">
           <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
+      </div>
+      <div className="debug-info">
+        {`top-left: ${Math.round(-offset.x / zoom)}, ${Math.round(-offset.y / zoom)} | `}
+        {mousePos ? `mouse: ${Math.round(mousePos.x)}, ${Math.round(mousePos.y)}` : 'mouse: -,-'}
       </div>
     </div>
   );
