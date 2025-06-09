@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Note } from './App';
 import { ColorPalette } from './ColorPalette';
 
@@ -38,9 +39,11 @@ export interface StickyNoteProps {
   offset: { x: number; y: number };
   /** Current zoom level of the board */
   zoom: number;
+  /** DOM element to render controls overlay into */
+  overlayContainer?: HTMLElement | null;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, offset, zoom }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, offset, zoom, overlayContainer }) => {
   // Track the current interaction mode (dragging vs resizing) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
@@ -129,6 +132,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   // Render the note along with its controls. The styling is dynamic based on
   // selection state and zoom level.
   return (
+    <>
     <div
       className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
       style={{
@@ -148,38 +152,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       draggable={false}
     >
       {!editing && <div className="note-drag-target" draggable={false} onDragStart={e => e.preventDefault()} />}
-      {selected && !editing && (
-        // Buttons shown when the note is selected
-        <div className="note-controls">
-          <div className="note-toolbar">
-            <button
-              className={`pin-back note-control${note.pinned ? ' active' : ''}`}
-              onPointerDown={e => e.stopPropagation()}
-              onClick={() => onSetPinned(note.id, !note.pinned)}
-              title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
-            >
-              <i className="fa-solid fa-thumbtack" />
-            </button>
-            {/* Palette for picking a different background color */}
-            <ColorPalette
-              value={note.color}
-              onChange={(color) => onUpdate(note.id, { color })}
-            />
-            <button
-              className="archive note-control"
-              onPointerDown={e => e.stopPropagation()}
-              onClick={() => onArchive(note.id, !note.archived)}
-              title={note.archived ? 'Unarchive' : 'Archive'}
-            >
-              <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
-            </button>
-          </div>
-          {/* Drag handle used for resizing */}
-          <div className="resize-handle note-control">
-            <i className="fa-solid fa-up-right-and-down-left-from-center" />
-          </div>
-        </div>
-      )}
       {editing ? (
         // Editable textarea shown on double-click
         <textarea
@@ -194,5 +166,40 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
     </div>
+    {overlayContainer && selected && !editing &&
+      createPortal(
+        <div
+          className="note-controls"
+          style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
+        >
+          <div className="note-toolbar">
+            <button
+              className={`pin-back note-control${note.pinned ? ' active' : ''}`}
+              onPointerDown={e => e.stopPropagation()}
+              onClick={() => onSetPinned(note.id, !note.pinned)}
+              title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
+            >
+              <i className="fa-solid fa-thumbtack" />
+            </button>
+            <ColorPalette
+              value={note.color}
+              onChange={(color) => onUpdate(note.id, { color })}
+            />
+            <button
+              className="archive note-control"
+              onPointerDown={e => e.stopPropagation()}
+              onClick={() => onArchive(note.id, !note.archived)}
+              title={note.archived ? 'Unarchive' : 'Archive'}
+            >
+              <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
+            </button>
+          </div>
+          <div className="resize-handle note-control">
+            <i className="fa-solid fa-up-right-and-down-left-from-center" />
+          </div>
+        </div>,
+        overlayContainer
+      )}
+    </>
   );
 };

@@ -37,6 +37,17 @@
   transform-origin: top left;
 }
 
+.note-overlays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform-origin: top left;
+  z-index: 100;
+}
+
 .note {
   background-color: #fff;
   border: 1px solid #e5e7eb;
@@ -102,9 +113,12 @@
 
 .note-controls {
   position: absolute;
-  inset: 0;
   pointer-events: none;
   z-index: 2;
+}
+
+.note > .note-controls {
+  inset: 0;
 }
 
 .note-toolbar {

@@ -58,6 +58,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const offsetRef = useRef(offset);
   const [mousePos, setMousePos] = useState<{x: number; y: number} | null>(null);
 
+  // Container used to render note controls above all notes
+  const overlayRef = useRef<HTMLDivElement>(null);
+
   // Utility to translate screen coordinates to board coordinates based on the
   // current zoom and pan offset.
   const toBoardCoords = (clientX: number, clientY: number) => {
@@ -291,9 +294,18 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             onSelect={onSelect}
             offset={offset}
             zoom={zoom}
+            overlayContainer={overlayRef.current}
           />
         ))}
       </div>
+      <div
+        ref={overlayRef}
+        className="note-overlays"
+        style={{
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+          '--zoom': zoom,
+        } as React.CSSProperties}
+      />
       {/* Overlay with buttons and slider to control zoom */}
       <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
         <button onClick={() => applyZoom(zoomRef.current * 0.9)} title="Zoom Out">
