@@ -36,6 +36,10 @@ following capabilities:
 
 The backend package only exposes a simple Lambda function returning a greeting
 and serves as a placeholder for future API development.
+## Frontend Service Layer
+
+A new `AppService` manages all client-side state including the active user, workspaces and their canvas data. Components now call the service when mutating state (adding notes, switching workspaces, etc.) and subscribe to its change events to keep React state in sync. These methods will later post updates to the backend.
+
 
 ## Repository Structure
 

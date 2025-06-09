@@ -1,78 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserProvider } from './UserContext';
-import { AccountControls, WorkspaceInfo } from './AccountControls';
+import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
+import { appService, AppState, Note } from './services/AppService';
 import './App.css';
 
-export interface Note {
-  id: number;
-  content: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  archived: boolean;
-  color: string;
-  zIndex: number;
-}
-
-interface Workspace {
-  id: number;
-  name: string;
-  notes: Note[];
-  offset: { x: number; y: number };
-  zoom: number;
-  zCounter: number;
-}
-
 const App: React.FC = () => {
-  const defaultWorkspace: Workspace = {
-    id: 1,
-    name: 'Default',
-    notes: [],
-    offset: { x: 0, y: 0 },
-    zoom: 1,
-    zCounter: 0,
-  };
-
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([defaultWorkspace]);
-  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<number>(1);
+  const [appState, setAppState] = useState<AppState>(appService.getState());
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+
+  useEffect(() => appService.subscribe(setAppState), []);
+
+  const { workspaces, currentWorkspaceId } = appState;
 
   const currentWsIndex = workspaces.findIndex(w => w.id === currentWorkspaceId);
   const workspace = workspaces[currentWsIndex];
 
   const addNote = () => {
-    if (!workspace) return;
-    const id = Date.now();
-    const newZ = workspace.zCounter + 1;
-    const newNote: Note = {
-      id,
-      content: '',
-      x: (-workspace.offset.x + 40) / workspace.zoom,
-      y: (-workspace.offset.y + 40) / workspace.zoom,
-      width: 150,
-      height: 120,
-      archived: false,
-      color: '#fef08a',
-      zIndex: newZ,
-    };
-    setWorkspaces(ws =>
-      ws.map((w, i) =>
-        i === currentWsIndex ? { ...w, notes: [...w.notes, newNote], zCounter: newZ } : w
-      )
-    );
+    appService.addNote();
   };
 
   const updateNote = (id: number, data: Partial<Note>) => {
-    setWorkspaces(ws =>
-      ws.map((w, i) =>
-        i === currentWsIndex
-          ? { ...w, notes: w.notes.map(n => (n.id === id ? { ...n, ...data } : n)) }
-          : w
-      )
-    );
+    appService.updateNote(id, data);
   };
 
   const handleSelect = (id: number | null) => {
@@ -80,19 +30,8 @@ const App: React.FC = () => {
       setSelectedId(null);
       return;
     }
-    const newZ = workspace.zCounter + 1;
     setSelectedId(id);
-    setWorkspaces(ws =>
-      ws.map((w, i) =>
-        i === currentWsIndex
-          ? {
-              ...w,
-              zCounter: newZ,
-              notes: w.notes.map(n => (n.id === id ? { ...n, zIndex: newZ } : n)),
-            }
-          : w
-      )
-    );
+    appService.bringNoteToFront(id);
   };
 
   const toggleShowArchived = () => {
@@ -100,45 +39,28 @@ const App: React.FC = () => {
   };
 
   const setOffset = (pos: { x: number; y: number }) => {
-    setWorkspaces(ws =>
-      ws.map((w, i) => (i === currentWsIndex ? { ...w, offset: pos } : w))
-    );
+    appService.setOffset(pos);
   };
 
   const setZoom = (z: number) => {
-    setWorkspaces(ws =>
-      ws.map((w, i) => (i === currentWsIndex ? { ...w, zoom: z } : w))
-    );
+    appService.setZoom(z);
   };
 
   const createWorkspace = () => {
-    const id = Date.now();
-    const newWs: Workspace = {
-      id,
-      name: `Workspace ${workspaces.length + 1}`,
-      notes: [],
-      offset: { x: 0, y: 0 },
-      zoom: 1,
-      zCounter: 0,
-    };
-    setWorkspaces(ws => [...ws, newWs]);
-    setCurrentWorkspaceId(id);
+    appService.createWorkspace();
     setSelectedId(null);
   };
 
   const renameWorkspace = (id: number) => {
-    const wsIndex = workspaces.findIndex(w => w.id === id);
-    const ws = workspaces[wsIndex];
+    const ws = workspaces.find(w => w.id === id);
     if (!ws || ws.id === 1) return;
     const name = window.prompt('Workspace name', ws.name);
     if (!name || name.trim() === '') return;
-    setWorkspaces(all =>
-      all.map((w, i) => (i === wsIndex ? { ...w, name: name.trim() } : w))
-    );
+    appService.renameWorkspace(id, name.trim());
   };
 
   const switchWorkspace = (id: number) => {
-    setCurrentWorkspaceId(id);
+    appService.switchWorkspace(id);
     setSelectedId(null);
   };
 
@@ -159,12 +81,12 @@ const App: React.FC = () => {
         <NoteCanvas
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
           onUpdate={updateNote}
-          onArchive={(id, archived) => updateNote(id, { archived })}
+          onArchive={(id, archived) => appService.archiveNote(id, archived)}
           selectedId={selectedId}
           onSelect={handleSelect}
-          offset={workspace.offset}
+          offset={workspace.canvas.offset}
           setOffset={setOffset}
-          zoom={workspace.zoom}
+          zoom={workspace.canvas.zoom}
           setZoom={setZoom}
         />
       </div>

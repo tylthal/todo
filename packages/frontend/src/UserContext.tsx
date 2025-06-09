@@ -1,4 +1,5 @@
 import React, { createContext, useState, ReactNode } from 'react';
+import { appService } from './services/AppService';
 
 // Simple context used by the demo application to represent an authenticated
 // user. In a real application this would be wired up to AWS Cognito or another
@@ -34,11 +35,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = () => {
     // In lieu of real authentication logic we just set a fixed user object.
     // This keeps the demo self-contained.
-    setUser({ id: '1', name: 'Demo User' });
+    const u = { id: '1', name: 'Demo User' };
+    setUser(u);
+    appService.setUser(u);
   };
 
   // Clear the session
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    appService.setUser(null);
+  };
 
   // Provide the current user and auth helpers to descendants
   return (
