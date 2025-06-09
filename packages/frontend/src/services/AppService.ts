@@ -75,7 +75,10 @@ export class AppService extends EventEmitter {
   /** Subscribe to state changes. Returns an unsubscribe function. */
   subscribe(listener: (state: AppState) => void): () => void {
     this.on('change', listener);
-    return () => this.off('change', listener);
+    // Older versions of the `events` package used by our browser build do not
+    // implement the `off` alias that Node's `EventEmitter` provides.
+    // Use `removeListener` for maximum compatibility when unsubscribing.
+    return () => this.removeListener('change', listener);
   }
 
   private emitChange(): void {
