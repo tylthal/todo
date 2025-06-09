@@ -37,9 +37,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     const board = boardRef.current;
     if (board) {
       const rect = board.getBoundingClientRect();
-      const cx = (rect.width / 2 - offset.x) / zoom;
-      const cy = (rect.height / 2 - offset.y) / zoom;
-      setOffset({ x: rect.width / 2 - cx * clamped, y: rect.height / 2 - cy * clamped });
+      const dx = rect.width / 2 * (1 / clamped - 1 / zoom);
+      const dy = rect.height / 2 * (1 / clamped - 1 / zoom);
+      setOffset({ x: offset.x + dx, y: offset.y + dy });
     }
     setZoom(clamped);
   };
@@ -128,8 +128,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         ))}
       </div>
       <div className="zoom-controls">
-        <button onClick={() => applyZoom(zoom * 1.1)} title="Zoom In">
-          <i className="fa-solid fa-magnifying-glass-plus" />
+        <button onClick={() => applyZoom(zoom * 0.9)} title="Zoom Out">
+          <i className="fa-solid fa-magnifying-glass-minus" />
         </button>
         <input
           className="zoom-slider"
@@ -141,8 +141,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           onChange={e => applyZoom(Number(e.target.value))}
         />
         <div className="zoom-percentage">{Math.round(zoom * 100)}%</div>
-        <button onClick={() => applyZoom(zoom * 0.9)} title="Zoom Out">
-          <i className="fa-solid fa-magnifying-glass-minus" />
+        <button onClick={() => applyZoom(zoom * 1.1)} title="Zoom In">
+          <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
       </div>
     </div>
