@@ -52,6 +52,7 @@
   background-color: #fff;
   border: 1px solid #e5e7eb;
   padding: 0.5rem;
+  box-sizing: border-box;
   position: absolute;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -114,6 +115,7 @@
 .note-controls {
   position: absolute;
   pointer-events: none;
+  box-sizing: border-box;
   z-index: 2;
 }
 
