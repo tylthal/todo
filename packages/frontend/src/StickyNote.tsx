@@ -175,12 +175,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
             top: note.y,
             width: note.width,
             height: note.height,
-            pointerEvents: 'auto',
           }}
-          onPointerDown={pointerDown}
-          onPointerMove={pointerMove}
-          onPointerUp={pointerUp}
-          onPointerCancel={pointerCancel}
         >
           <div className="note-toolbar">
             <button
@@ -204,7 +199,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
               <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
             </button>
           </div>
-          <div className="resize-handle note-control">
+          <div
+            className="resize-handle note-control"
+            onPointerDown={pointerDown}
+            onPointerMove={pointerMove}
+            onPointerUp={pointerUp}
+            onPointerCancel={pointerCancel}
+          >
             <i className="fa-solid fa-up-right-and-down-left-from-center" />
           </div>
         </div>,
