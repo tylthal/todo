@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface ColorPaletteProps {
   value: string;
@@ -17,6 +17,23 @@ export const PALETTE_COLORS = [
 ];
 
 export const ColorPalette: React.FC<ColorPaletteProps> = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <div className="palette-toggle">
+        <button
+          className="note-control palette-button"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={() => setOpen(true)}
+          title="Change color"
+        >
+          <i className="fa fa-palette" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="color-palette" onPointerDown={e => e.stopPropagation()}>
       {PALETTE_COLORS.map((color) => (
@@ -25,7 +42,10 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({ value, onChange }) =
           className={`color-swatch${color === value ? ' selected' : ''}`}
           style={{ backgroundColor: color }}
           title="Change color"
-          onClick={() => onChange(color)}
+          onClick={() => {
+            onChange(color);
+            setOpen(false);
+          }}
         />
       ))}
     </div>
