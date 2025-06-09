@@ -69,7 +69,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     if (!board) return;
     const clamped = clampZoom(newZoom);
     setZoom(clamped);
-    setOffset(o => zoomAroundCenter(board, zoomRef.current, clamped, o));
+    setOffset(
+      zoomAroundCenter(board, zoomRef.current, clamped, offsetRef.current)
+    );
     zoomRef.current = clamped;
   };
 
