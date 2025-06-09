@@ -86,7 +86,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
 
   return (
     <div
-      className={`note${selected ? ' selected' : ''}`}
+      className={`note${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
       style={{
         left: note.x,
         top: note.y,
