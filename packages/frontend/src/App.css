@@ -122,6 +122,20 @@
   pointer-events: auto;
 }
 
+.palette-toggle {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+}
+
+.palette-button {
+  border-radius: 50%;
+}
+
+.palette-button:hover {
+  background: #e2e8f0;
+}
+
 .color-swatch {
   width: 20px;
   height: 20px;
