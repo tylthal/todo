@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [zCounter, setZCounter] = useState(0);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const addNote = () => {
     const id = Date.now();
@@ -30,8 +31,8 @@ const App: React.FC = () => {
       {
         id,
         content: '',
-        x: 40,
-        y: 40,
+        x: -offset.x + 40,
+        y: -offset.y + 40,
         width: 150,
         height: 120,
         archived: false,
@@ -67,6 +68,8 @@ const App: React.FC = () => {
           onArchive={(id) => updateNote(id, { archived: true })}
           selectedId={selectedId}
           onSelect={handleSelect}
+          offset={offset}
+          setOffset={setOffset}
         />
       </div>
     </UserProvider>
