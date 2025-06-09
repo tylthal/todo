@@ -20,7 +20,7 @@ const adjustColor = (color: string, amount: number) => {
 export interface StickyNoteProps {
   note: Note;
   onUpdate: (id: number, data: Partial<Note>) => void;
-  onArchive: (id: number) => void;
+  onArchive: (id: number, archived: boolean) => void;
   selected: boolean;
   onSelect: (id: number) => void;
 }
@@ -86,7 +86,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
 
   return (
     <div
-      className={`note${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
+      className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
       style={{
         left: note.x,
         top: note.y,
@@ -107,10 +107,10 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
           <button
             className="archive note-control"
             onPointerDown={e => e.stopPropagation()}
-            onClick={() => onArchive(note.id)}
-            title="Archive"
+            onClick={() => onArchive(note.id, !note.archived)}
+            title={note.archived ? 'Unarchive' : 'Archive'}
           >
-          <i className="fa-solid fa-box-archive" />
+          <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
           </button>
           <ColorPalette
             value={note.color}

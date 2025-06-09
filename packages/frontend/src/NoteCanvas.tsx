@@ -6,7 +6,7 @@ import { Note } from './App';
 export interface NoteCanvasProps {
   notes: Note[];
   onUpdate: (id: number, data: Partial<Note>) => void;
-  onArchive: (id: number) => void;
+  onArchive: (id: number, archived: boolean) => void;
   selectedId: number | null;
   onSelect: (id: number | null) => void;
   offset: { x: number; y: number };
