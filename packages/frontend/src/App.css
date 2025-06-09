@@ -93,6 +93,14 @@
   cursor: pointer;
 }
 
+.note-control:hover {
+  background: #e2e8f0;
+}
+
+.note-control:hover i {
+  color: #3b82f6;
+}
+
 .note .archive {
   top: 4px;
   right: 4px;
