@@ -103,7 +103,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
-        <div className="note-controls">
+        <div className="note-controls" style={{ transform: `rotate(${-note.rotation}deg)` }}>
           <button
             className="archive note-control"
             onPointerDown={e => e.stopPropagation()}
