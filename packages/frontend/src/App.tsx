@@ -33,8 +33,10 @@ const App: React.FC = () => {
       {
         id,
         content: '',
-        x: -offset.x + 40,
-        y: -offset.y + 40,
+        // Place the new note near the top-left corner of the visible
+        // viewport regardless of the current zoom level.
+        x: (-offset.x + 40) / zoom,
+        y: (-offset.y + 40) / zoom,
         width: 150,
         height: 120,
         archived: false,
