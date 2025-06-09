@@ -36,6 +36,11 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     centerBoard: { x: number; y: number };
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(offset);
+
+  useEffect(() => {
+    offsetRef.current = offset;
+  }, [offset]);
 
   const clampZoom = (z: number) => Math.max(0.5, Math.min(3, z));
 
@@ -142,19 +147,37 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     }
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.1 : 0.9;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const boardX = (e.clientX - rect.left - offset.x) / zoomRef.current;
-    const boardY = (e.clientY - rect.top - offset.y) / zoomRef.current;
+  const applyWheelZoom = (
+    clientX: number,
+    clientY: number,
+    deltaY: number,
+    target: HTMLElement
+  ) => {
+    const factor = deltaY < 0 ? 1.1 : 0.9;
+    const rect = target.getBoundingClientRect();
+    const boardX = (clientX - rect.left - offsetRef.current.x) / zoomRef.current;
+    const boardY = (clientY - rect.top - offsetRef.current.y) / zoomRef.current;
     const newZoom = clampZoom(zoomRef.current * factor);
     setZoom(newZoom);
     setOffset({
-      x: e.clientX - rect.left - boardX * newZoom,
-      y: e.clientY - rect.top - boardY * newZoom,
+      x: clientX - rect.left - boardX * newZoom,
+      y: clientY - rect.top - boardY * newZoom,
     });
   };
+
+
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      applyWheelZoom(e.clientX, e.clientY, e.deltaY, board);
+    };
+    board.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      board.removeEventListener('wheel', onWheel);
+    };
+  }, []);
 
   useEffect(() => {
     const board = boardRef.current;
@@ -204,7 +227,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerUp}
-      onWheel={handleWheel}
     >
       <div
         className="notes"
