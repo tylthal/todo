@@ -25,8 +25,8 @@ const App: React.FC = () => {
     appService.updateNote(id, data);
   };
 
-  const sendNoteToBack = (id: number) => {
-    appService.sendNoteToBack(id);
+  const setNotePinned = (id: number, pinned: boolean) => {
+    appService.setNotePinned(id, pinned);
   };
 
   const handleSelect = (id: number | null) => {
@@ -35,7 +35,10 @@ const App: React.FC = () => {
       return;
     }
     setSelectedId(id);
-    appService.bringNoteToFront(id);
+    const note = workspace.notes.find(n => n.id === id);
+    if (note && !note.pinned) {
+      appService.bringNoteToFront(id);
+    }
   };
 
   const toggleShowArchived = () => {
@@ -86,7 +89,7 @@ const App: React.FC = () => {
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
           onUpdate={updateNote}
           onArchive={(id, archived) => appService.archiveNote(id, archived)}
-          onSendToBack={sendNoteToBack}
+          onSetPinned={setNotePinned}
           selectedId={selectedId}
           onSelect={handleSelect}
           offset={workspace.canvas.offset}

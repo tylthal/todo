@@ -32,15 +32,15 @@ export interface StickyNoteProps {
   selected: boolean;
   /** Select this note */
   onSelect: (id: number) => void;
-  /** Send this note behind all others */
-  onSendToBack: (id: number) => void;
+  /** Pin or unpin this note behind all others */
+  onSetPinned: (id: number, pinned: boolean) => void;
   /** Board offset used to translate screen to board coordinates */
   offset: { x: number; y: number };
   /** Current zoom level of the board */
   zoom: number;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSendToBack, offset, zoom }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, offset, zoom }) => {
   // Track the current interaction mode (dragging vs resizing) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
@@ -152,12 +152,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         // Buttons shown when the note is selected
         <div className="note-controls">
           <button
-            className="send-back note-control"
+            className={`pin-back note-control${note.pinned ? ' active' : ''}`}
             onPointerDown={e => e.stopPropagation()}
-            onClick={() => onSendToBack(note.id)}
-            title="Send to Back"
+            onClick={() => onSetPinned(note.id, !note.pinned)}
+            title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
           >
-            <i className="fa-solid fa-layer-group" />
+            <i className="fa-solid fa-thumbtack" />
           </button>
           <button
             className="archive note-control"

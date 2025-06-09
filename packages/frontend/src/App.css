@@ -144,9 +144,17 @@
   right: calc(4px / var(--zoom));
 }
 
-.note .send-back {
+.note .pin-back {
   top: calc(4px / var(--zoom));
   right: calc(40px / var(--zoom));
+}
+
+.note-control.active {
+  background: #e2e8f0;
+}
+
+.note-control.active i {
+  color: #3b82f6;
 }
 
 

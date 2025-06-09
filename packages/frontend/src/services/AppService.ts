@@ -17,6 +17,7 @@ export interface Note {
   archived: boolean;
   color: string;
   zIndex: number;
+  pinned?: boolean;
 }
 
 /** Canvas state for a workspace */
@@ -157,6 +158,7 @@ export class AppService extends EventEmitter {
       archived: false,
       color: '#fef08a',
       zIndex: newZ,
+      pinned: false,
     };
     ws.canvas.zCounter = newZ;
     ws.notes.push(note);
@@ -195,6 +197,21 @@ export class AppService extends EventEmitter {
     const minZ = Math.min(...ws.notes.map(n => n.zIndex));
     note.zIndex = minZ - 1;
     this.emitChange();
+  }
+
+  /** Pin or unpin a note behind others */
+  setNotePinned(id: number, pinned: boolean): void {
+    const ws = this.currentWorkspace;
+    const note = ws.notes.find(n => n.id === id);
+    if (!note) return;
+    note.pinned = pinned;
+    if (pinned) {
+      const minZ = Math.min(...ws.notes.map(n => n.zIndex));
+      note.zIndex = minZ - 1;
+      this.emitChange();
+    } else {
+      this.bringNoteToFront(id);
+    }
   }
 
   /** Archive or unarchive a note */
