@@ -48,7 +48,9 @@ export const zoomAroundCenter = (
   offset: Point
 ): Point => {
   const rect = board.getBoundingClientRect();
-  const dx = (rect.width / 2) * (1 / nextZoom - 1 / prevZoom);
-  const dy = (rect.height / 2) * (1 / nextZoom - 1 / prevZoom);
-  return { x: offset.x + dx, y: offset.y + dy };
+  const pivot = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
+  return zoomAroundPoint(board, pivot, prevZoom, nextZoom, offset);
 };
