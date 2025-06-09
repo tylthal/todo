@@ -26,15 +26,13 @@ export interface StickyNoteProps {
 }
 
 export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect }) => {
-  const modeRef = useRef<'drag' | 'resize' | 'rotate' | null>(null);
+  const modeRef = useRef<'drag' | 'resize' | null>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
-  const rotateRef = useRef({ startAngle: 0, startPointerAngle: 0 });
   const resizeRef = useRef({
     startX: 0,
     startY: 0,
     startWidth: 0,
     startHeight: 0,
-    rotation: 0,
   });
   const [editing, setEditing] = useState(false);
 
@@ -50,16 +48,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         startY: e.clientY,
         startWidth: note.width,
         startHeight: note.height,
-        rotation: note.rotation,
-      };
-    } else if (target.closest('.rotate-handle')) {
-      modeRef.current = 'rotate';
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      rotateRef.current = {
-        startAngle: note.rotation,
-        startPointerAngle: Math.atan2(e.clientY - centerY, e.clientX - centerX),
       };
     } else {
       modeRef.current = 'drag';
@@ -76,21 +64,9 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     if (modeRef.current === 'resize') {
       const dx = e.clientX - resizeRef.current.startX;
       const dy = e.clientY - resizeRef.current.startY;
-      const angle = (resizeRef.current.rotation * Math.PI) / 180;
-      const localDx = dx * Math.cos(angle) + dy * Math.sin(angle);
-      const localDy = -dx * Math.sin(angle) + dy * Math.cos(angle);
-      const newWidth = Math.max(80, resizeRef.current.startWidth + localDx);
-      const newHeight = Math.max(60, resizeRef.current.startHeight + localDy);
+      const newWidth = Math.max(80, resizeRef.current.startWidth + dx);
+      const newHeight = Math.max(60, resizeRef.current.startHeight + dy);
       onUpdate(note.id, { width: newWidth, height: newHeight });
-    }
-    if (modeRef.current === 'rotate') {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-      const deg = rotateRef.current.startAngle +
-        (angle - rotateRef.current.startPointerAngle) * (180 / Math.PI);
-      onUpdate(note.id, { rotation: deg });
     }
   };
 
@@ -111,7 +87,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         top: note.y,
         width: note.width,
         height: note.height,
-        transform: `rotate(${note.rotation}deg)`,
         backgroundColor: note.color,
         borderColor: adjustColor(note.color, -30),
         zIndex: note.zIndex,
@@ -122,7 +97,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       onDoubleClick={() => setEditing(true)}
     >
       {selected && !editing && (
-        <div className="note-controls" style={{ transform: `rotate(${-note.rotation}deg)` }}>
+        <div className="note-controls">
           <button
             className="archive note-control"
             onPointerDown={e => e.stopPropagation()}
@@ -131,12 +106,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
           >
           <i className="fa-solid fa-box-archive" />
           </button>
-          <div
-            className="rotate-handle note-control"
-            title="Rotate"
-          >
-            <i className="fa-solid fa-rotate" />
-          </div>
           <ColorPalette
             value={note.color}
             onChange={(color) => onUpdate(note.id, { color })}

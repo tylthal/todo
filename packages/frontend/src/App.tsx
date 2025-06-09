@@ -13,7 +13,6 @@ export interface Note {
   height: number;
   archived: boolean;
   color: string;
-  rotation: number;
   zIndex: number;
 }
 
@@ -37,7 +36,6 @@ const App: React.FC = () => {
         height: 120,
         archived: false,
         color: '#fef08a',
-        rotation: 0,
         zIndex: newZ,
       },
     ]);
