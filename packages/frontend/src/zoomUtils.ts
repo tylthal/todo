@@ -3,10 +3,16 @@ export interface Point {
   y: number;
 }
 
+/** Minimum allowable zoom level */
+export const MIN_ZOOM = 0.1;
+
+/** Maximum allowable zoom level */
+export const MAX_ZOOM = 3;
+
 /**
  * Clamp the zoom level between a minimum and maximum value.
  */
-export const clampZoom = (z: number, min = 0.5, max = 3): number => {
+export const clampZoom = (z: number, min = MIN_ZOOM, max = MAX_ZOOM): number => {
   return Math.max(min, Math.min(max, z));
 };
 
