@@ -215,6 +215,18 @@
   background-color: #3b82f6;
   border-color: #3b82f6;
 }
+.workspace-controls select {
+  margin-right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #1e293b;
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.workspace-controls button {
+  margin-left: 0;
+}
 .account button:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
