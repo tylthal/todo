@@ -195,20 +195,21 @@
 
 .account {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 1rem 1.5rem;
   background-color: #0f172a;
   color: #fff;
 }
 
 .account button {
   margin-left: 0.5rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   background: transparent;
   color: #fff;
   border: 1px solid #fff;
   border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
 }
 .account .add-note {
@@ -217,15 +218,22 @@
 }
 .workspace-controls select {
   margin-right: 0.5rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   background-color: #1e293b;
   color: #fff;
   border: 1px solid #fff;
   border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
 }
 .workspace-controls button {
   margin-left: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+}
+.account-actions {
+  display: flex;
+  align-items: center;
 }
 .account button:hover {
   background-color: rgba(255, 255, 255, 0.2);

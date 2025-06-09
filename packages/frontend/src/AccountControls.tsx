@@ -15,6 +15,7 @@ export interface AccountControlsProps {
   currentWorkspaceId: number;
   onCreateWorkspace: () => void;
   onSwitchWorkspace: (id: number) => void;
+  onRenameWorkspace: (id: number) => void;
 }
 export const AccountControls: React.FC<AccountControlsProps> = ({
   onAddNote,
@@ -24,6 +25,7 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
   currentWorkspaceId,
   onCreateWorkspace,
   onSwitchWorkspace,
+  onRenameWorkspace,
 }) => {
   const { user, login, logout } = useContext(UserContext);
 
@@ -41,17 +43,26 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
         <button onClick={onCreateWorkspace} title="New Workspace">
           <i className="fa-solid fa-folder-plus" />
         </button>
+        <button
+          onClick={() => onRenameWorkspace(currentWorkspaceId)}
+          title="Rename Workspace"
+          disabled={currentWorkspaceId === 1}
+        >
+          <i className="fa-solid fa-pen" />
+        </button>
       </div>
-      <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
-      <button onClick={onToggleShowArchived}>{showArchived ? 'Hide Archived' : 'Show Archived'}</button>
-      {user ? (
-        <>
-          <span className="welcome">Hello, {user.name}</span>
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        <button onClick={login}>Login</button>
-      )}
+      <div className="account-actions">
+        <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
+        <button onClick={onToggleShowArchived}>{showArchived ? 'Hide Archived' : 'Show Archived'}</button>
+        {user ? (
+          <>
+            <span className="welcome">Hello, {user.name}</span>
+            <button onClick={logout}>Logout</button>
+          </>
+        ) : (
+          <button onClick={login}>Login</button>
+        )}
+      </div>
     </div>
   );
 };
