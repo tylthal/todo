@@ -47,12 +47,12 @@ resource "aws_s3_bucket_policy" "frontend" {
 data "aws_iam_policy_document" "frontend" {
   statement {
     effect = "Allow"
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-    actions = ["s3:GetObject"]
+    actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.frontend.arn}/*"]
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
+    }
   }
 }
 
@@ -79,6 +79,12 @@ resource "aws_cloudfront_distribution" "frontend" {
     target_origin_id = "frontend-s3"
 
     viewer_protocol_policy = "redirect-to-https"
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {
