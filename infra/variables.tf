@@ -19,3 +19,8 @@ variable "domain_name_root" {
   type        = string
   default     = "thalman.org"
 }
+
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for CloudFront"
+  type        = string
+}
