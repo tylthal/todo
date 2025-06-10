@@ -35,6 +35,10 @@ const App: React.FC = () => {
     appService.setNotePinned(id, pinned);
   };
 
+  const setNoteLocked = (id: number, locked: boolean) => {
+    appService.setNoteLocked(id, locked);
+  };
+
   const deleteNote = (id: number) => {
     appService.deleteNote(id);
   };
@@ -119,6 +123,7 @@ const App: React.FC = () => {
           onUpdate={updateNote}
           onArchive={(id, archived) => appService.archiveNote(id, archived)}
           onSetPinned={setNotePinned}
+          onSetLocked={setNoteLocked}
           onDelete={deleteNote}
           selectedId={selectedId}
           onSelect={handleSelect}

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Note } from './App';
+import { Note } from './services/AppService';
 import { NoteControls } from './NoteControls';
 
 // Interactive sticky note component that can be dragged, resized and edited.
@@ -34,6 +34,8 @@ export interface StickyNoteProps {
   onSelect: (id: number) => void;
   /** Pin or unpin this note behind all others */
   onSetPinned: (id: number, pinned: boolean) => void;
+  /** Lock or unlock this note */
+  onSetLocked: (id: number, locked: boolean) => void;
   /** Delete the note */
   onDelete: (id: number) => void;
   /** Board offset used to translate screen to board coordinates */
@@ -44,7 +46,7 @@ export interface StickyNoteProps {
   overlayContainer?: HTMLElement | null;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onDelete, offset, zoom, overlayContainer }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onSetLocked, onDelete, offset, zoom, overlayContainer }) => {
   // Track the current interaction mode (dragging vs resizing) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
@@ -80,10 +82,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Begin a drag or resize interaction. Determine which based on the element
-    // under the pointer.
-    e.stopPropagation();
+    // under the pointer. Locked notes should pass the event through so the
+    // canvas can handle panning.
+    if (!note.locked) {
+      e.stopPropagation();
+    }
     onSelect(note.id);
-    if (editing) return;
+    if (editing || note.locked) return;
     const target = e.target as HTMLElement;
     const pos = toBoard(e.clientX, e.clientY);
     if (target.closest('.resize-handle')) {
@@ -104,7 +109,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (editing) return;
+    if (editing || note.locked) return;
     const pos = toBoard(e.clientX, e.clientY);
     if (modeRef.current === 'drag') {
       // Move the note according to the pointer, keeping the initial offset.
@@ -130,6 +135,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   };
 
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (note.locked) return;
     // Gesture aborted
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
@@ -145,7 +151,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   return (
     <>
     <div
-      className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}`}
+      className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}${note.locked ? ' locked' : ''}`}
       style={{
         left: note.x,
         top: note.y,
@@ -184,6 +190,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         onUpdate={onUpdate}
         onArchive={onArchive}
         onSetPinned={onSetPinned}
+        onSetLocked={onSetLocked}
         onDelete={onDelete}
         overlayContainer={overlayContainer}
         onPointerDown={pointerDown}

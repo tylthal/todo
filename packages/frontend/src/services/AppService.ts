@@ -18,6 +18,7 @@ export interface Note {
   color: string;
   zIndex: number;
   pinned?: boolean;
+  locked?: boolean;
 }
 
 /** Canvas state for a workspace */
@@ -159,6 +160,7 @@ export class AppService extends EventEmitter {
       color: '#fef08a',
       zIndex: newZ,
       pinned: false,
+      locked: false,
     };
     ws.canvas.zCounter = newZ;
     ws.notes.push(note);
@@ -212,6 +214,15 @@ export class AppService extends EventEmitter {
     } else {
       this.bringNoteToFront(id);
     }
+  }
+
+  /** Lock or unlock a note */
+  setNoteLocked(id: number, locked: boolean): void {
+    const ws = this.currentWorkspace;
+    const note = ws.notes.find(n => n.id === id);
+    if (!note) return;
+    note.locked = locked;
+    this.emitChange();
   }
 
   /** Archive or unarchive a note */
