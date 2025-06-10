@@ -5,6 +5,9 @@ import { Note } from './services/AppService';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
 const PINCH_SENSITIVITY = 0.5;
+// Basic detection for iOS devices
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  /iPad|iPhone|iPod/.test(navigator.platform);
 
 // Canvas that renders all sticky notes for the active workspace. Handles panning
 // and zooming interactions as well as delegating updates to individual notes.
@@ -224,21 +227,26 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   // Re-register wheel zoom handler whenever the active workspace changes so the
   // correct setters are used
   useEffect(() => {
-    // Support trackpad pinch gestures on Safari by listening to gesture events
     const board = boardRef.current;
     if (!board) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       applyWheelZoom(e.clientX, e.clientY, e.deltaY, board);
     };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+    };
     board.addEventListener('wheel', onWheel, { passive: false });
+    board.addEventListener('touchmove', onTouchMove, { passive: false });
     return () => {
       board.removeEventListener('wheel', onWheel);
+      board.removeEventListener('touchmove', onTouchMove);
     };
   }, [setZoom, setOffset]);
 
   // Gesture events also need to use the latest workspace handlers for pinch zoom
   useEffect(() => {
+    if (isIOS) return;
     const board = boardRef.current;
     if (!board) return;
     const gestureStart = (e: any) => {
