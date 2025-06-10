@@ -119,12 +119,12 @@
   position: static;
 }
 
+
 .note-menu {
   position: absolute;
   bottom: calc(100% + 4px / var(--zoom));
-  right: calc(-4px / var(--zoom));
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: calc(4px / var(--zoom));
   background: rgba(255, 255, 255, 0.9);
   padding: calc(4px / var(--zoom));
@@ -132,6 +132,16 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   z-index: 10;
+}
+
+.note-menu.menu-left {
+  left: calc(-4px / var(--zoom));
+  right: auto;
+}
+
+.note-menu.menu-right {
+  right: calc(-4px / var(--zoom));
+  left: auto;
 }
 
 .note-menu .note-control {
