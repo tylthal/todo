@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useDialog } from './DialogService';
+import PromptDialog from './PromptDialog';
 import { UserProvider } from './UserContext';
 import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
@@ -11,6 +13,7 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(appService.getState());
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const dialog = useDialog();
 
   useEffect(() => appService.subscribe(setAppState), []);
   useEffect(() => { selectedRef.current = selectedId; }, [selectedId]);
@@ -69,12 +72,23 @@ const App: React.FC = () => {
     setSelectedId(null);
   };
 
-  const renameWorkspace = (id: number) => {
+  const renameWorkspace = async (id: number) => {
     const ws = workspaces.find(w => w.id === id);
     if (!ws || ws.id === 1) return;
-    const name = window.prompt('Workspace name', ws.name);
-    if (!name || name.trim() === '') return;
-    appService.renameWorkspace(id, name.trim());
+    try {
+      const name = await dialog.open<string>((close) => (
+        <PromptDialog
+          title="Workspace name"
+          defaultValue={ws.name}
+          onConfirm={(val) => close.resolve(val)}
+          onCancel={close.reject}
+        />
+      ));
+      if (!name || name.trim() === '') return;
+      appService.renameWorkspace(id, name.trim());
+    } catch {
+      /* user cancelled */
+    }
   };
 
   const switchWorkspace = (id: number) => {
