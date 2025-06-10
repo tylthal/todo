@@ -57,22 +57,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const boardRef = useRef<HTMLDivElement>(null);
   // Mirror of the offset prop used inside gesture handlers
   const offsetRef = useRef(offset);
-  const [mousePos, setMousePos] = useState<{x: number; y: number} | null>(null);
-
   // Container used to render note controls above all notes
   const overlayRef = useRef<HTMLDivElement>(null);
-
-  // Utility to translate screen coordinates to board coordinates based on the
-  // current zoom and pan offset.
-  const toBoardCoords = (clientX: number, clientY: number) => {
-    const board = boardRef.current;
-    if (!board) return { x: 0, y: 0 };
-    const rect = board.getBoundingClientRect();
-    return {
-      x: (clientX - rect.left - offsetRef.current.x) / zoomRef.current,
-      y: (clientY - rect.top - offsetRef.current.y) / zoomRef.current,
-    };
-  };
 
   // Keep the refs in sync with the props so event handlers always use the
   // latest values.
@@ -125,7 +111,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Start panning the board
     onSelect(null);
-    setMousePos(toBoardCoords(e.clientX, e.clientY));
     panRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -151,8 +136,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Update mouse position and handle dragging or pinch-zoom gestures
-    setMousePos(toBoardCoords(e.clientX, e.clientY));
+    // Handle dragging or pinch-zoom gestures
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pinchRef.current && touchesRef.current.size === 2) {
@@ -197,7 +181,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     panRef.current = null;
     setPanning(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    setMousePos(toBoardCoords(e.clientX, e.clientY));
     touchesRef.current.delete(e.pointerId);
     if (touchesRef.current.size < 2) {
       pinchRef.current = null;
@@ -306,7 +289,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerUp}
-      onPointerLeave={() => setMousePos(null)}
     >
       <div
         className="notes"
@@ -362,11 +344,6 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         <button onClick={() => applyZoom(zoomRef.current * 1.1)} title="Zoom In">
           <i className="fa-solid fa-magnifying-glass-plus" />
         </button>
-      </div>
-      {/* Useful coordinates for development */}
-      <div className="debug-info">
-        {`top-left: ${Math.round(-offset.x / zoom)}, ${Math.round(-offset.y / zoom)} | `}
-        {mousePos ? `mouse: ${Math.round(mousePos.x)}, ${Math.round(mousePos.y)}` : 'mouse: -,-'}
       </div>
     </div>
   );
