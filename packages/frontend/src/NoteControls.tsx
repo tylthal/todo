@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Note } from './App';
+import { Note } from './services/AppService';
 import { ColorPalette } from './ColorPalette';
 import { useDialog } from './DialogService';
 import ConfirmDialog from './ConfirmDialog';
@@ -11,6 +11,7 @@ export interface NoteControlsProps {
   onUpdate: (id: number, data: Partial<Note>) => void;
   onArchive: (id: number, archived: boolean) => void;
   onSetPinned: (id: number, pinned: boolean) => void;
+  onSetLocked: (id: number, locked: boolean) => void;
   onDelete: (id: number) => void;
   overlayContainer: HTMLElement | null;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
@@ -24,6 +25,7 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
   onUpdate,
   onArchive,
   onSetPinned,
+  onSetLocked,
   onDelete,
   overlayContainer,
   onPointerDown,
@@ -63,6 +65,13 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
                 <i className="fa-solid fa-thumbtack" />
               </button>
               <button
+                className={`note-control${note.locked ? ' active' : ''}`}
+                onClick={() => { onSetLocked(note.id, !note.locked); setMenuOpen(false); }}
+                title={note.locked ? 'Unlock' : 'Lock'}
+              >
+                <i className={`fa-solid ${note.locked ? 'fa-lock' : 'fa-lock-open'}`} />
+              </button>
+              <button
                 className="note-control"
                 onClick={() => { onArchive(note.id, !note.archived); setMenuOpen(false); }}
                 title={note.archived ? 'Unarchive' : 'Archive'}
@@ -94,15 +103,17 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           )}
         </div>
       </div>
-      <div
-        className="resize-handle note-control"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-      >
-        <i className="fa-solid fa-up-right-and-down-left-from-center" />
-      </div>
+      {!note.locked && (
+        <div
+          className="resize-handle note-control"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+        >
+          <i className="fa-solid fa-up-right-and-down-left-from-center" />
+        </div>
+      )}
     </div>,
     overlayContainer
   );

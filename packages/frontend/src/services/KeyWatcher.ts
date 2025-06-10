@@ -74,6 +74,7 @@ export class KeyWatcher {
       y: original.y + 20,
       archived: original.archived,
       pinned: original.pinned,
+      locked: original.locked,
     });
     this.opts.selectNote(newId);
   }

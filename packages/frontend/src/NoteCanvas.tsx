@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
-import { Note } from './App';
+import { Note } from './services/AppService';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
 // Canvas that renders all sticky notes for the active workspace. Handles panning
@@ -16,6 +16,8 @@ export interface NoteCanvasProps {
   onArchive: (id: number, archived: boolean) => void;
   /** Pin or unpin a note behind all others */
   onSetPinned: (id: number, pinned: boolean) => void;
+  /** Lock or unlock a note */
+  onSetLocked: (id: number, locked: boolean) => void;
   /** Delete a note */
   onDelete: (id: number) => void;
   /** Id of the currently selected note */
@@ -37,6 +39,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   onUpdate,
   onArchive,
   onSetPinned,
+  onSetLocked,
   onDelete,
   selectedId,
   onSelect,
@@ -112,8 +115,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const zoomRef = useRef(zoom);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Start panning the board
-    onSelect(null);
+    // Start panning the board. If the pointer originated on a locked note,
+    // keep the selection so its controls remain accessible.
+    const locked = (e.target as HTMLElement).closest('.note.locked');
+    if (!locked) onSelect(null);
     panRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -310,6 +315,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             onUpdate={onUpdate}
             onArchive={onArchive}
             onSetPinned={onSetPinned}
+            onSetLocked={onSetLocked}
             onDelete={onDelete}
             selected={selectedId === note.id}
             onSelect={onSelect}

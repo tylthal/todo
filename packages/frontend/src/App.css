@@ -79,6 +79,10 @@
   opacity: 0.6;
 }
 
+.note.locked {
+  border-style: dashed;
+}
+
 
 .note-text {
   width: 100%;
