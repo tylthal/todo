@@ -4,6 +4,8 @@ import './App.css';
 import { Note } from './services/AppService';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
+const PINCH_SENSITIVITY = 0.5;
+
 // Canvas that renders all sticky notes for the active workspace. Handles panning
 // and zooming interactions as well as delegating updates to individual notes.
 
@@ -153,8 +155,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         const [a, b] = Array.from(touchesRef.current.values());
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         const center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        const ratio = dist / pinchRef.current.start;
         const newZoom = clampZoom(
-          pinchRef.current.zoom * (dist / pinchRef.current.start)
+          pinchRef.current.zoom * Math.pow(ratio, PINCH_SENSITIVITY)
         );
         const baseOffset = zoomAroundPoint(
           board,
@@ -253,8 +256,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       e.preventDefault();
       // Adjust zoom according to the gesture's scale factor and movement
       const center = { x: e.clientX, y: e.clientY };
-      const scaleDelta = e.scale / pinchRef.current.start;
-      const newZoom = clampZoom(pinchRef.current.zoom * scaleDelta);
+      const ratio = e.scale / pinchRef.current.start;
+      const newZoom = clampZoom(
+        pinchRef.current.zoom * Math.pow(ratio, PINCH_SENSITIVITY)
+      );
       const baseOffset = zoomAroundPoint(
         board,
         pinchRef.current.center,
