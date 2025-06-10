@@ -117,7 +117,8 @@ distribution.
    ```
 2. Apply the configuration, providing a unique S3 bucket name and AWS region:
    ```bash
-   terraform apply -var="bucket_name=<your-bucket>" -var="aws_region=<region>"
+   terraform apply -var="bucket_name=<your-bucket>" -var="aws_region=<region>" \
+     -var="acm_certificate_arn=<certificate-arn>"
    ```
    Terraform will output the CloudFront distribution ID which is required for
    frontend deployments.
