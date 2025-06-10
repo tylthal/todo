@@ -30,11 +30,17 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel?.();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel?.();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm?.();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onCancel]);
+  }, [onCancel, onConfirm]);
 
   const content = (
     <div className="modal-backdrop" onClick={onCancel}>
@@ -42,8 +48,16 @@ const Modal: React.FC<ModalProps> = ({
         <h3>{title}</h3>
         <div>{children}</div>
         <div className="modal-actions">
-          {onCancel && <button onClick={onCancel}>{cancelLabel}</button>}
-          {onConfirm && <button onClick={onConfirm}>{confirmLabel}</button>}
+          {onCancel && (
+            <button className="modal-button cancel" onClick={onCancel}>
+              {cancelLabel}
+            </button>
+          )}
+          {onConfirm && (
+            <button className="modal-button confirm" onClick={onConfirm}>
+              {confirmLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>
