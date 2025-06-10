@@ -35,6 +35,10 @@ const App: React.FC = () => {
     appService.setNotePinned(id, pinned);
   };
 
+  const deleteNote = (id: number) => {
+    appService.deleteNote(id);
+  };
+
   const handleSelect = (id: number | null) => {
     if (id === null) {
       setSelectedId(null);
@@ -115,6 +119,7 @@ const App: React.FC = () => {
           onUpdate={updateNote}
           onArchive={(id, archived) => appService.archiveNote(id, archived)}
           onSetPinned={setNotePinned}
+          onDelete={deleteNote}
           selectedId={selectedId}
           onSelect={handleSelect}
           offset={workspace.canvas.offset}
