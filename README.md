@@ -72,7 +72,8 @@ The frontend is a Vite-based React app responsible for rendering notes and manag
    ```bash
    npm run dev:backend
    ```
-5. Build all packages:
+5. Install dependencies in each workspace by running `npm install` inside each package directory or again at the repository root. This must be done before building.
+6. Build all packages:
    ```bash
    npm run build
    ```
