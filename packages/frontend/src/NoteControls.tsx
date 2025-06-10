@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Note } from './services/AppService';
 import { ColorPalette } from './ColorPalette';
@@ -35,6 +35,31 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
 }) => {
   const dialog = useDialog();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuSide, setMenuSide] = useState<'left' | 'right'>('left');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handler);
+    return () => document.removeEventListener('pointerdown', handler);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen || !containerRef.current || !menuRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const menuWidth = menuRef.current.offsetWidth;
+    if (containerRect.left + menuWidth > window.innerWidth && containerRect.right - menuWidth > 0) {
+      setMenuSide('right');
+    } else {
+      setMenuSide('left');
+    }
+  }, [menuOpen]);
   if (!overlayContainer) return null;
   return createPortal(
     <div
@@ -46,7 +71,7 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           value={note.color}
           onChange={(color) => onUpdate(note.id, { color })}
         />
-        <div className="menu-container" onPointerDown={e => e.stopPropagation()}>
+        <div ref={containerRef} className="menu-container" onPointerDown={e => e.stopPropagation()}>
           <button
             className="note-control menu-button"
             onPointerDown={e => e.stopPropagation()}
@@ -56,7 +81,7 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
             <i className="fa-solid fa-ellipsis" />
           </button>
           {menuOpen && (
-            <div className="note-menu">
+            <div ref={menuRef} className={`note-menu menu-${menuSide}`}>
               <button
                 className={`pin-back note-control${note.pinned ? ' active' : ''}`}
                 onClick={() => { onSetPinned(note.id, !note.pinned); setMenuOpen(false); }}
