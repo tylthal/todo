@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Note } from './App';
-import { ColorPalette } from './ColorPalette';
+import { NoteControls } from './NoteControls';
 
 // Interactive sticky note component that can be dragged, resized and edited.
 
@@ -177,51 +176,19 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
     </div>
-    {overlayContainer && selected && !editing &&
-      createPortal(
-        <div
-          className="note-controls"
-          style={{
-            left: note.x,
-            top: note.y,
-            width: note.width,
-            height: note.height,
-          }}
-        >
-          <div className="note-toolbar">
-            <button
-              className={`pin-back note-control${note.pinned ? ' active' : ''}`}
-              onPointerDown={e => e.stopPropagation()}
-              onClick={() => onSetPinned(note.id, !note.pinned)}
-              title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
-            >
-              <i className="fa-solid fa-thumbtack" />
-            </button>
-            <ColorPalette
-              value={note.color}
-              onChange={(color) => onUpdate(note.id, { color })}
-            />
-            <button
-              className="archive note-control"
-              onPointerDown={e => e.stopPropagation()}
-              onClick={() => onArchive(note.id, !note.archived)}
-              title={note.archived ? 'Unarchive' : 'Archive'}
-            >
-              <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
-            </button>
-          </div>
-          <div
-            className="resize-handle note-control"
-            onPointerDown={pointerDown}
-            onPointerMove={pointerMove}
-            onPointerUp={pointerUp}
-            onPointerCancel={pointerCancel}
-          >
-            <i className="fa-solid fa-up-right-and-down-left-from-center" />
-          </div>
-        </div>,
-        overlayContainer
-      )}
+    {overlayContainer && selected && !editing && (
+      <NoteControls
+        note={note}
+        onUpdate={onUpdate}
+        onArchive={onArchive}
+        onSetPinned={onSetPinned}
+        overlayContainer={overlayContainer}
+        onPointerDown={pointerDown}
+        onPointerMove={pointerMove}
+        onPointerUp={pointerUp}
+        onPointerCancel={pointerCancel}
+      />
+    )}
     </>
   );
 };

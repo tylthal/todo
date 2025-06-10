@@ -1,0 +1,132 @@
+.note-controls {
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.note > .note-controls {
+  inset: 0;
+}
+
+.note-toolbar {
+  position: absolute;
+  top: calc(-40px / var(--zoom));
+  right: calc(-4px / var(--zoom));
+  display: flex;
+  gap: calc(4px / var(--zoom));
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.9);
+  padding: calc(4px / var(--zoom));
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.note-toolbar:hover {
+  opacity: 1;
+}
+
+.note-toolbar .note-control {
+  position: static;
+}
+
+.note-drag-target {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.01);
+  z-index: 1;
+}
+
+.note-control {
+  pointer-events: auto;
+  position: absolute;
+  width: calc(32px / var(--zoom));
+  height: calc(32px / var(--zoom));
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(1.25rem / var(--zoom));
+  cursor: pointer;
+}
+
+.note-control:hover {
+  background: #e2e8f0;
+}
+
+.note-control:hover i {
+  color: #3b82f6;
+}
+
+.note .archive {
+  /* positioning handled by toolbar container */
+}
+
+.note .pin-back {
+  /* positioning handled by toolbar container */
+}
+
+.note-control.active {
+  background: #e2e8f0;
+}
+
+.note-control.active i {
+  color: #3b82f6;
+}
+
+.color-palette {
+  position: relative;
+  display: flex;
+  gap: calc(4px / var(--zoom));
+  background: rgba(255, 255, 255, 0.9);
+  padding: calc(4px / var(--zoom));
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.palette-toggle {
+  position: relative;
+  width: calc(32px / var(--zoom));
+  height: calc(32px / var(--zoom));
+}
+
+.palette-button {
+  border-radius: 50%;
+  position: static;
+}
+
+.palette-button:hover {
+  background: #e2e8f0;
+}
+
+.color-swatch {
+  width: calc(20px / var(--zoom));
+  height: calc(20px / var(--zoom));
+  border-radius: 50%;
+  border: calc(2px / var(--zoom)) solid #ffffff;
+  cursor: pointer;
+}
+
+.color-swatch.selected {
+  outline: calc(2px / var(--zoom)) solid #1e293b;
+}
+
+.resize-handle {
+  bottom: calc(4px / var(--zoom));
+  right: calc(4px / var(--zoom));
+  cursor: nwse-resize;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.resize-handle:hover {
+  opacity: 1;
+}
