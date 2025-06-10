@@ -81,7 +81,9 @@
 }
 
 .color-palette {
-  position: relative;
+  position: absolute;
+  bottom: calc(100% + 4px / var(--zoom));
+  right: calc(-4px / var(--zoom));
   display: flex;
   gap: calc(4px / var(--zoom));
   background: rgba(255, 255, 255, 0.9);
@@ -92,7 +94,7 @@
   z-index: 10;
 }
 
-.palette-toggle {
+.palette-container {
   position: relative;
   width: calc(32px / var(--zoom));
   height: calc(32px / var(--zoom));
