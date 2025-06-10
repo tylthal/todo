@@ -238,6 +238,12 @@
   bottom: calc(4px / var(--zoom));
   right: calc(4px / var(--zoom));
   cursor: nwse-resize;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.resize-handle:hover {
+  opacity: 1;
 }
 
 .app {
