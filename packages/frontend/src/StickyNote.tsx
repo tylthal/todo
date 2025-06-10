@@ -183,9 +183,10 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         // Static display of note content
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
-      {note.locked && (
-        <div className="note-lock-indicator">
-          <i className="fa-solid fa-lock" />
+      {(note.locked || note.pinned) && (
+        <div className="note-indicators">
+          {note.locked && <i className="fa-solid fa-lock" />}
+          {note.pinned && <i className="fa-solid fa-thumbtack" />}
         </div>
       )}
     </div>
