@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Note } from './App';
 import { ColorPalette } from './ColorPalette';
@@ -59,6 +59,16 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   });
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      const el = textareaRef.current;
+      const len = el.value.length;
+      el.focus();
+      el.setSelectionRange(len, len);
+    }
+  }, [editing]);
 
   // Convert screen coordinates to board coordinates taking zoom/offset into
   // account.
@@ -155,6 +165,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       {editing ? (
         // Editable textarea shown on double-click
         <textarea
+          ref={textareaRef}
           className="note-text"
           value={note.content}
           onChange={e => handleChange(e.target.value)}
