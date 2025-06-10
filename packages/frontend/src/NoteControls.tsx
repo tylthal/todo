@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Note } from './App';
 import { ColorPalette } from './ColorPalette';
+import { useDialog } from './DialogService';
+import ConfirmDialog from './ConfirmDialog';
 import './NoteControls.css';
 
 export interface NoteControlsProps {
@@ -9,6 +11,7 @@ export interface NoteControlsProps {
   onUpdate: (id: number, data: Partial<Note>) => void;
   onArchive: (id: number, archived: boolean) => void;
   onSetPinned: (id: number, pinned: boolean) => void;
+  onDelete: (id: number) => void;
   overlayContainer: HTMLElement | null;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
   onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
@@ -21,12 +24,15 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
   onUpdate,
   onArchive,
   onSetPinned,
+  onDelete,
   overlayContainer,
   onPointerDown,
   onPointerMove,
   onPointerUp,
   onPointerCancel,
 }) => {
+  const dialog = useDialog();
+  const [menuOpen, setMenuOpen] = useState(false);
   if (!overlayContainer) return null;
   return createPortal(
     <div
@@ -46,14 +52,48 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           value={note.color}
           onChange={(color) => onUpdate(note.id, { color })}
         />
-        <button
-          className="archive note-control"
-          onPointerDown={e => e.stopPropagation()}
-          onClick={() => onArchive(note.id, !note.archived)}
-          title={note.archived ? 'Unarchive' : 'Archive'}
-        >
-          <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
-        </button>
+        <div className="menu-container" onPointerDown={e => e.stopPropagation()}>
+          <button
+            className="note-control menu-button"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={() => setMenuOpen(o => !o)}
+            title="More"
+          >
+            <i className="fa-solid fa-ellipsis" />
+          </button>
+          {menuOpen && (
+            <div className="note-menu">
+              <button
+                className="note-control"
+                onClick={() => { onArchive(note.id, !note.archived); setMenuOpen(false); }}
+                title={note.archived ? 'Unarchive' : 'Archive'}
+              >
+                <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
+              </button>
+              <button
+                className="note-control"
+                onClick={async () => {
+                  try {
+                    await dialog.open<void>((close) => (
+                      <ConfirmDialog
+                        message="Delete this note?"
+                        onConfirm={() => close.resolve()}
+                        onCancel={close.reject}
+                      />
+                    ));
+                    onDelete(note.id);
+                  } catch {
+                    /* cancelled */
+                  }
+                  setMenuOpen(false);
+                }}
+                title="Delete"
+              >
+                <i className="fa-solid fa-trash" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div
         className="resize-handle note-control"

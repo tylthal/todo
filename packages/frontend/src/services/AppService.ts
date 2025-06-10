@@ -219,6 +219,15 @@ export class AppService extends EventEmitter {
     this.updateNote(id, { archived });
   }
 
+  /** Delete a note from the active workspace */
+  deleteNote(id: number): void {
+    const ws = this.currentWorkspace;
+    const index = ws.notes.findIndex(n => n.id === id);
+    if (index === -1) return;
+    ws.notes.splice(index, 1);
+    this.emitChange();
+  }
+
   /** Set canvas pan offset */
   setOffset(pos: { x: number; y: number }): void {
     const ws = this.currentWorkspace;

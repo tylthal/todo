@@ -34,6 +34,8 @@ export interface StickyNoteProps {
   onSelect: (id: number) => void;
   /** Pin or unpin this note behind all others */
   onSetPinned: (id: number, pinned: boolean) => void;
+  /** Delete the note */
+  onDelete: (id: number) => void;
   /** Board offset used to translate screen to board coordinates */
   offset: { x: number; y: number };
   /** Current zoom level of the board */
@@ -42,7 +44,7 @@ export interface StickyNoteProps {
   overlayContainer?: HTMLElement | null;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, offset, zoom, overlayContainer }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onDelete, offset, zoom, overlayContainer }) => {
   // Track the current interaction mode (dragging vs resizing) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | null>(null);
@@ -182,6 +184,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         onUpdate={onUpdate}
         onArchive={onArchive}
         onSetPinned={onSetPinned}
+        onDelete={onDelete}
         overlayContainer={overlayContainer}
         onPointerDown={pointerDown}
         onPointerMove={pointerMove}

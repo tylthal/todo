@@ -109,6 +109,31 @@
   background: #e2e8f0;
 }
 
+.menu-container {
+  position: relative;
+  width: calc(32px / var(--zoom));
+  height: calc(32px / var(--zoom));
+}
+
+.menu-button {
+  position: static;
+}
+
+.note-menu {
+  position: absolute;
+  bottom: calc(100% + 4px / var(--zoom));
+  right: calc(-4px / var(--zoom));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px / var(--zoom));
+  background: rgba(255, 255, 255, 0.9);
+  padding: calc(4px / var(--zoom));
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  z-index: 10;
+}
+
 .color-swatch {
   width: calc(20px / var(--zoom));
   height: calc(20px / var(--zoom));
