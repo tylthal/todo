@@ -235,6 +235,14 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.modal-content h3 {
+  margin: 0 0 1rem;
+}
+
+.modal-content p {
+  margin: 0 0 1rem;
+}
+
 .modal-actions {
   margin-top: 1rem;
   text-align: right;
