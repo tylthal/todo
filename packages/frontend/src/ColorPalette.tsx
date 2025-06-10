@@ -23,41 +23,37 @@ export const PALETTE_COLORS = [
 ];
 
 export const ColorPalette: React.FC<ColorPaletteProps> = ({ value, onChange }) => {
-  // Controls whether the palette is expanded or just shows the palette button
+  // Controls whether the palette popover is visible
   const [open, setOpen] = useState(false);
 
-  if (!open) {
-    return (
-      <div className="palette-toggle">
-        {/* Compact button shown when the palette is closed */}
-        <button
-          className="note-control palette-button"
-          onPointerDown={e => e.stopPropagation()}
-          onClick={() => setOpen(true)}
-          title="Change color"
-        >
-          <i className="fa-solid fa-palette" />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    // Expanded palette of color choices
-    <div className="color-palette" onPointerDown={e => e.stopPropagation()}>
-      {PALETTE_COLORS.map((color) => (
-        <button
-          key={color}
-          className={`color-swatch${color === value ? ' selected' : ''}`}
-          style={{ backgroundColor: color }}
-          title="Change color"
-          onClick={() => {
-            // Update the parent with the new color and close the palette
-            onChange(color);
-            setOpen(false);
-          }}
-        />
-      ))}
+    <div className="palette-container" onPointerDown={e => e.stopPropagation()}>
+      {/* Toggle button to open/close the palette */}
+      <button
+        className="note-control palette-button"
+        onPointerDown={e => e.stopPropagation()}
+        onClick={() => setOpen(o => !o)}
+        title="Change color"
+      >
+        <i className="fa-solid fa-palette" />
+      </button>
+      {open && (
+        <div className="color-palette">
+          {PALETTE_COLORS.map((color) => (
+            <button
+              key={color}
+              className={`color-swatch${color === value ? ' selected' : ''}`}
+              style={{ backgroundColor: color }}
+              title="Change color"
+              onClick={() => {
+                // Update the parent with the new color and close the palette
+                onChange(color);
+                setOpen(false);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
