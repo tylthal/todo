@@ -134,6 +134,10 @@
   z-index: 10;
 }
 
+.note-menu .note-control {
+  position: static;
+}
+
 .color-swatch {
   width: calc(20px / var(--zoom));
   height: calc(20px / var(--zoom));

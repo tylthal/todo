@@ -40,14 +40,6 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
       style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
     >
       <div className="note-toolbar">
-        <button
-          className={`pin-back note-control${note.pinned ? ' active' : ''}`}
-          onPointerDown={e => e.stopPropagation()}
-          onClick={() => onSetPinned(note.id, !note.pinned)}
-          title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
-        >
-          <i className="fa-solid fa-thumbtack" />
-        </button>
         <ColorPalette
           value={note.color}
           onChange={(color) => onUpdate(note.id, { color })}
@@ -63,6 +55,13 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           </button>
           {menuOpen && (
             <div className="note-menu">
+              <button
+                className={`pin-back note-control${note.pinned ? ' active' : ''}`}
+                onClick={() => { onSetPinned(note.id, !note.pinned); setMenuOpen(false); }}
+                title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
+              >
+                <i className="fa-solid fa-thumbtack" />
+              </button>
               <button
                 className="note-control"
                 onClick={() => { onArchive(note.id, !note.archived); setMenuOpen(false); }}
