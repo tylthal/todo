@@ -183,6 +183,11 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         // Static display of note content
         <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
       )}
+      {note.locked && (
+        <div className="note-lock-indicator">
+          <i className="fa-solid fa-lock" />
+        </div>
+      )}
     </div>
     {overlayContainer && selected && !editing && (
       <NoteControls
