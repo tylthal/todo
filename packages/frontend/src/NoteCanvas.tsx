@@ -251,7 +251,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       e.preventDefault();
       // Start a two-finger pinch gesture
       pinchRef.current = {
-        start: 1,
+        start: e.scale,
         zoom: zoomRef.current,
         center: { x: e.clientX, y: e.clientY },
         offset: offsetRef.current,
@@ -262,7 +262,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       e.preventDefault();
       // Adjust zoom according to the gesture's scale factor and movement
       const center = { x: e.clientX, y: e.clientY };
-      const newZoom = clampZoom(pinchRef.current.zoom * e.scale);
+      const scaleDelta = e.scale / pinchRef.current.start;
+      const newZoom = clampZoom(pinchRef.current.zoom * scaleDelta);
       const baseOffset = zoomAroundPoint(
         board,
         pinchRef.current.center,
