@@ -83,6 +83,15 @@
   border-style: dashed;
 }
 
+.note-lock-indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 
 .note-text {
   width: 100%;
