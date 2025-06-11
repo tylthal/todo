@@ -5,17 +5,13 @@ import React, { createContext, useEffect, useState, ReactNode } from 'react';
 import { Amplify } from '@aws-amplify/core';
 import { Auth } from '@aws-amplify/auth';
 import { appService } from './services/AppService';
+import type { User } from '@sticky-notes/shared';
 
 // Simple context used by the demo application to represent an authenticated
 // user. In a real application this would be wired up to AWS Cognito or another
 // auth provider. Here we just expose `login` and `logout` helpers and keep the
 // user object in local React state.
 
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-}
 
 /**
  * Shape of the context value returned by {@link UserContext}.
