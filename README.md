@@ -116,13 +116,24 @@ distribution.
    cd infra
    terraform init
    ```
-2. Apply the configuration, providing a unique S3 bucket name and AWS region:
+2. Apply the configuration, providing a unique S3 bucket name, Cognito settings
+   and AWS region:
    ```bash
-   terraform apply -var="bucket_name=<your-bucket>" -var="aws_region=<region>" \
-     -var="acm_certificate_arn=<certificate-arn>"
+   terraform apply \
+     -var="bucket_name=<your-bucket>" \
+     -var="aws_region=<region>" \
+     -var="acm_certificate_arn=<certificate-arn>" \
+     -var="google_client_id=<google-oauth-client-id>" \
+     -var="google_client_secret=<google-oauth-secret>" \
+     -var="callback_urls=[\"https://notes.example.com/callback\"]" \
+      -var="logout_urls=[\"https://notes.example.com\"]" \
+      -var="cognito_domain_prefix=<unique-prefix>"
    ```
-   Terraform will output the CloudFront distribution ID which is required for
-   frontend deployments.
+  Terraform will output the CloudFront distribution ID which is required for
+  frontend deployments.
+  It also prints the `user_pool_id`, `user_pool_client_id` and
+  `cognito_hosted_ui_domain` values used when configuring the frontend
+  authentication flow.
 
 ### Deploying the frontend
 

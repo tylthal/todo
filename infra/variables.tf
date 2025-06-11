@@ -24,3 +24,29 @@ variable "acm_certificate_arn" {
   description = "ACM certificate ARN for CloudFront"
   type        = string
 }
+
+variable "google_client_id" {
+  description = "Google OAuth client ID"
+  type        = string
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "callback_urls" {
+  description = "Allowed OAuth2 callback URLs"
+  type        = list(string)
+}
+
+variable "logout_urls" {
+  description = "Allowed logout redirect URLs"
+  type        = list(string)
+}
+
+variable "cognito_domain_prefix" {
+  description = "Unique prefix for Cognito hosted UI domain"
+  type        = string
+}

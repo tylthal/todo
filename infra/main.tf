@@ -117,6 +117,51 @@ data "aws_route53_zone" "main" {
   name = var.domain_name_root
 }
 
+# Cognito User Pool for authentication
+resource "aws_cognito_user_pool" "main" {
+  name                = "sticky-notes-pool"
+  auto_verified_attributes = ["email"]
+  username_attributes = ["email"]
+}
+
+# Client application using OAuth2 code grant
+resource "aws_cognito_user_pool_client" "web" {
+  name         = "sticky-notes-client"
+  user_pool_id = aws_cognito_user_pool.main.id
+
+  explicit_auth_flows = ["ALLOW_USER_SRP_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
+
+  callback_urls = var.callback_urls
+  logout_urls   = var.logout_urls
+
+  supported_identity_providers      = ["COGNITO", "Google"]
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows               = ["code"]
+  allowed_oauth_scopes              = ["email", "openid", "profile"]
+}
+
+# Google identity provider
+resource "aws_cognito_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id     = var.google_client_id
+    client_secret = var.google_client_secret
+    authorize_scopes = "openid email profile"
+  }
+
+  attribute_mapping = {
+    email = "email"
+  }
+}
+
+resource "aws_cognito_user_pool_domain" "main" {
+  domain       = var.cognito_domain_prefix
+  user_pool_id = aws_cognito_user_pool.main.id
+}
+
 output "bucket_name" {
   value = aws_s3_bucket.frontend.bucket
 }
@@ -127,4 +172,16 @@ output "cloudfront_distribution_id" {
 
 output "cloudfront_domain_name" {
   value = aws_cloudfront_distribution.frontend.domain_name
+}
+
+output "user_pool_id" {
+  value = aws_cognito_user_pool.main.id
+}
+
+output "user_pool_client_id" {
+  value = aws_cognito_user_pool_client.web.id
+}
+
+output "cognito_hosted_ui_domain" {
+  value = aws_cognito_user_pool_domain.main.domain
 }
