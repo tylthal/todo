@@ -1,4 +1,5 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useEffect, useState, ReactNode } from 'react';
+import { Amplify, Auth } from 'aws-amplify';
 import { appService } from './services/AppService';
 
 // Simple context used by the demo application to represent an authenticated
@@ -9,6 +10,7 @@ import { appService } from './services/AppService';
 export interface User {
   id: string;
   name: string;
+  email?: string;
 }
 
 /**
@@ -29,24 +31,64 @@ export const UserContext = createContext<UserContextType>({
 });
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Track the currently logged in user. `null` means no one is logged in.
   const [user, setUser] = useState<User | null>(null);
 
+  // Configure Amplify once on mount using environment variables.
+  useEffect(() => {
+    const userPoolId = import.meta.env.VITE_COGNITO_USER_POOL_ID;
+    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+    const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+    const redirect = import.meta.env.VITE_COGNITO_REDIRECT_URI;
+
+    if (!userPoolId || !clientId || !domain || !redirect) return;
+
+    const region = userPoolId.split('_')[0];
+
+    Amplify.configure({
+      Auth: {
+        region,
+        userPoolId,
+        userPoolWebClientId: clientId,
+        oauth: {
+          domain,
+          scope: ['openid', 'email', 'profile'],
+          redirectSignIn: redirect,
+          redirectSignOut: redirect,
+          responseType: 'code',
+        },
+      },
+    });
+
+    const loadUser = async () => {
+      try {
+        const cognitoUser = await Auth.currentAuthenticatedUser();
+        const attrs = (cognitoUser as any).attributes || {};
+        const u: User = {
+          id: attrs.sub,
+          name: attrs.name || attrs.email || 'User',
+          email: attrs.email,
+        };
+        setUser(u);
+        appService.setUser(u);
+      } catch {
+        // not signed in
+        setUser(null);
+        appService.setUser(null);
+      }
+    };
+    void loadUser();
+  }, []);
+
   const login = () => {
-    // In lieu of real authentication logic we just set a fixed user object.
-    // This keeps the demo self-contained.
-    const u = { id: '1', name: 'Demo User' };
-    setUser(u);
-    appService.setUser(u);
+    Auth.federatedSignIn();
   };
 
-  // Clear the session
-  const logout = () => {
+  const logout = async () => {
+    await Auth.signOut();
     setUser(null);
     appService.setUser(null);
   };
 
-  // Provide the current user and auth helpers to descendants
   return (
     <UserContext.Provider value={{ user, login, logout }}>
       {children}

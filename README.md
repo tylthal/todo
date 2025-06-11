@@ -135,6 +135,22 @@ distribution.
   `cognito_hosted_ui_domain` values used when configuring the frontend
   authentication flow.
 
+### Authentication configuration
+
+The frontend requires a few environment variables so it can talk to your
+Cognito user pool. Create a `.env` file in `packages/frontend` with the
+following values:
+
+```bash
+VITE_COGNITO_USER_POOL_ID=<your-user-pool-id>
+VITE_COGNITO_CLIENT_ID=<your-app-client-id>
+VITE_COGNITO_DOMAIN=<your-hosted-ui-domain>
+VITE_COGNITO_REDIRECT_URI=<http://localhost:5173>
+```
+
+`VITE_COGNITO_REDIRECT_URI` should match one of the callback URLs specified in
+your Cognito app client settings.
+
 ### Deploying the frontend
 
 Once the infrastructure is created you can build and upload the frontend using
