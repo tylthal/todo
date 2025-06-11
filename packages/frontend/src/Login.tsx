@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Auth } from 'aws-amplify';
+// Import the modular Auth package directly.
+import { Auth } from '@aws-amplify/auth';
 import { appService } from './services/AppService';
 
 /**

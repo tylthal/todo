@@ -1,5 +1,9 @@
 import React, { createContext, useEffect, useState, ReactNode } from 'react';
-import { Amplify, Auth } from 'aws-amplify';
+// Use the modular Amplify packages to avoid bundling issues when Vite resolves
+// dependencies. Importing from the root 'aws-amplify' package can fail if the
+// dependency isn't installed yet.
+import { Amplify } from '@aws-amplify/core';
+import { Auth } from '@aws-amplify/auth';
 import { appService } from './services/AppService';
 
 // Simple context used by the demo application to represent an authenticated
