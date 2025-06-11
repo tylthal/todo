@@ -146,10 +146,12 @@ VITE_COGNITO_USER_POOL_ID=<your-user-pool-id>
 VITE_COGNITO_CLIENT_ID=<your-app-client-id>
 VITE_COGNITO_DOMAIN=<your-hosted-ui-domain>
 VITE_COGNITO_REDIRECT_URI=<http://localhost:5173>
+VITE_COGNITO_LOGOUT_URI=<http://localhost:5173>
 ```
 
 `VITE_COGNITO_REDIRECT_URI` should match one of the callback URLs specified in
-your Cognito app client settings.
+your Cognito app client settings while `VITE_COGNITO_LOGOUT_URI` must be an
+allowed logout URL.
 
 ### Deploying the frontend
 

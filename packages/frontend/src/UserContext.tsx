@@ -43,6 +43,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
     const domain = import.meta.env.VITE_COGNITO_DOMAIN;
     const redirect = import.meta.env.VITE_COGNITO_REDIRECT_URI;
+    const logoutUri = import.meta.env.VITE_COGNITO_LOGOUT_URI || redirect;
 
     if (!userPoolId || !clientId || !domain || !redirect) return;
 
@@ -57,7 +58,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           domain,
           scope: ['openid', 'email', 'profile'],
           redirectSignIn: redirect,
-          redirectSignOut: redirect,
+          redirectSignOut: logoutUri,
           responseType: 'code',
         },
       },
