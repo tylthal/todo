@@ -1,11 +1,6 @@
 import { EventEmitter } from 'events';
+import type { User } from '@sticky-notes/shared';
 
-/** User account model */
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-}
 
 /** Sticky note data model */
 export interface Note {
