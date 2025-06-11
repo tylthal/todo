@@ -80,6 +80,9 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
         {user ? (
           <>
             <span className="welcome">Hello, {user.name}</span>
+            {user.email && (
+              <span className="email">({user.email})</span>
+            )}
             <button onClick={logout}>Logout</button>
           </>
         ) : (
