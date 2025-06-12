@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useDialog } from './DialogService';
 import PromptDialog from './PromptDialog';
-import { UserProvider } from './UserContext';
+import { UserProvider, UserContext } from './UserContext';
 import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
+import LoginOverlay from './LoginOverlay';
 import { KeyWatcher } from "./services/KeyWatcher";
 import { appService, AppState, Note } from './services/AppService';
 import './App.css';
 
-const App: React.FC = () => {
+// Component containing the main application logic. It is rendered inside
+// {@link UserProvider} so that we can consume {@link UserContext}.
+const AppContent: React.FC = () => {
+  const { user } = useContext(UserContext);
   const selectedRef = useRef<number | null>(null);
   const [appState, setAppState] = useState<AppState>(appService.getState());
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -105,9 +109,12 @@ const App: React.FC = () => {
   };
 
 
+  if (!user) {
+    return <LoginOverlay />;
+  }
+
   return (
-    <UserProvider>
-      <div className="app">
+    <div className="app">
         <AccountControls
           onAddNote={addNote}
           showArchived={showArchived}
@@ -133,8 +140,13 @@ const App: React.FC = () => {
           setZoom={setZoom}
         />
       </div>
-    </UserProvider>
   );
 };
+
+const App: React.FC = () => (
+  <UserProvider>
+    <AppContent />
+  </UserProvider>
+);
 
 export default App;
