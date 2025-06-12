@@ -96,7 +96,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(u);
         appService.setUser(u);
       } catch (err) {
-        console.debug('currentAuthenticatedUser failed', err);
+        const message = (err as Error).message;
+        console.debug('currentAuthenticatedUser failed', message, err);
         // not signed in
         setUser(null);
         appService.setUser(null);
