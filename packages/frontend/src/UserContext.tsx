@@ -68,7 +68,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         userPoolWebClientId: clientId,
         oauth: {
           domain,
-          scope: ['openid', 'email', 'profile'],
+          scope: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
           redirectSignIn: redirect,
           redirectSignOut: logoutUri,
           responseType: 'code',
