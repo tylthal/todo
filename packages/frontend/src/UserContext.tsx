@@ -41,10 +41,26 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const redirect = import.meta.env.VITE_COGNITO_REDIRECT_URI;
     const logoutUri = import.meta.env.VITE_COGNITO_LOGOUT_URI || redirect;
 
-    if (!userPoolId || !clientId || !domain || !redirect) return;
+    if (!userPoolId || !clientId || !domain || !redirect) {
+      console.debug('Missing Cognito env vars', {
+        userPoolId,
+        clientId,
+        domain,
+        redirect,
+      });
+      return;
+    }
 
     const region = userPoolId.split('_')[0];
 
+    console.debug('Configuring Amplify Auth', {
+      region,
+      userPoolId,
+      clientId,
+      domain,
+      redirect,
+      logoutUri,
+    });
     Amplify.configure({
       Auth: {
         region,
@@ -61,6 +77,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     const loadUser = async () => {
+      console.debug('Loading authenticated user...');
       try {
         const cognitoUser = await Auth.currentAuthenticatedUser();
         const attrs = (cognitoUser as any).attributes || {};
@@ -75,7 +92,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.debug('Authenticated user', u);
         setUser(u);
         appService.setUser(u);
-      } catch {
+      } catch (err) {
+        console.debug('currentAuthenticatedUser failed', err);
         // not signed in
         setUser(null);
         appService.setUser(null);
@@ -85,10 +103,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = () => {
+    console.debug('Login requested');
     Auth.federatedSignIn();
   };
 
   const logout = async () => {
+    console.debug('Logout requested');
     await Auth.signOut();
     setUser(null);
     appService.setUser(null);
