@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef, useState, useEffect } from 'react';
 import { UserContext } from './UserContext';
 import './App.css';
 
@@ -42,6 +42,29 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
 }) => {
   // Consume the simple user context so we can show login/logout buttons.
   const { user, login, logout } = useContext(UserContext);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close the dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   return (
     <div className="account">
@@ -78,13 +101,27 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
         <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
         <button onClick={onToggleShowArchived}>{showArchived ? 'Hide Archived' : 'Show Archived'}</button>
         {user ? (
-          <>
-            <span className="welcome">Hello, {user.name}</span>
-            {user.email && (
-              <span className="email">({user.email})</span>
+          <div ref={menuRef} className="user-menu">
+            <button
+              className="profile"
+              onClick={() => setMenuOpen((o) => !o)}
+              title="Account Menu"
+            >
+              <i className="fa-solid fa-user" />
+            </button>
+            {menuOpen && (
+              <div className="user-dropdown">
+                <button
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
             )}
-            <button onClick={logout}>Logout</button>
-          </>
+          </div>
         ) : (
           <button onClick={login}>Login</button>
         )}
