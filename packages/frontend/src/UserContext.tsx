@@ -69,6 +69,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: attrs.name || attrs.email || 'User',
           email: attrs.email,
         };
+        // Temporary debug output so we can inspect the authenticated user in
+        // the browser console. This should be removed once authentication is
+        // fully verified.
+        console.debug('Authenticated user', u);
         setUser(u);
         appService.setUser(u);
       } catch {
