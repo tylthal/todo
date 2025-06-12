@@ -80,7 +80,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.debug('Loading authenticated user...');
       try {
         const cognitoUser = await Auth.currentAuthenticatedUser();
-        const attrs = (cognitoUser as any).attributes || {};
+        const attrsList = await Auth.userAttributes(cognitoUser);
+        const attrs = Object.fromEntries(
+          attrsList.map((a: any) => [a.Name, a.Value])
+        ) as Record<string, string>;
         const u: User = {
           id: attrs.sub,
           name: attrs.name || attrs.email || 'User',
