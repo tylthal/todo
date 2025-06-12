@@ -153,7 +153,10 @@ resource "aws_cognito_identity_provider" "google" {
   }
 
   attribute_mapping = {
-    email = "email"
+    email       = "email"
+    name        = "name"
+    given_name  = "given_name"
+    family_name = "family_name"
   }
 }
 
