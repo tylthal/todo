@@ -123,8 +123,22 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
 
   const interactionsRef = useRef<ShapeInteractions<Note> | null>(null);
 
+  // Create a new ShapeInteractions instance whenever the note id changes
   useEffect(() => {
     interactionsRef.current = new ShapeInteractions<Note>({
+      shape: note,
+      allShapes: allNotes,
+      zoom,
+      offset,
+      snapToEdges,
+      onUpdate,
+      onSnapLinesChange,
+    });
+  }, [note.id]);
+
+  // Update interaction options when relevant props change
+  useEffect(() => {
+    interactionsRef.current?.updateOptions({
       shape: note,
       allShapes: allNotes,
       zoom,

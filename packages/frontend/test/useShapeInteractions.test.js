@@ -35,4 +35,22 @@ function create(shape, all = [], snap = false) {
   assert.strictEqual(shape.x, 100);
 })();
 
+// Updating options mid-drag should not reset the drag offset
+(function(){
+  const shape = { id: 1, x: 0, y: 0, width: 100, height: 100, zIndex: 1, color: '#fff', archived: false };
+  const { si } = create(shape);
+  si.pointerDown({ clientX: 0, clientY: 0, target: { closest: () => null }, pointerId: 1 });
+  si.updateOptions({
+    shape,
+    allShapes: [shape],
+    zoom: 1,
+    offset: { x: 0, y: 0 },
+    snapToEdges: false,
+    onUpdate: (_, d) => Object.assign(shape, d),
+    onSnapLinesChange: () => {}
+  });
+  si.pointerMove({ clientX: 20, clientY: 0 });
+  assert.strictEqual(shape.x, 20);
+})();
+
 console.log('useShapeInteractions tests passed');
