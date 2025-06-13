@@ -48,9 +48,9 @@ export interface StickyNoteProps {
 }
 
 export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onSetLocked, onDelete, offset, zoom, overlayContainer }) => {
-  // Track the current interaction mode (dragging vs resizing) and store
+  // Track the current interaction mode (dragging, resizing or pinching) and store
   // temporary data needed to calculate positions during the gesture.
-  const modeRef = useRef<'drag' | 'resize' | null>(null);
+  const modeRef = useRef<'drag' | 'resize' | 'pinch' | null>(null);
   // For drag operations we store the pointer's offset from the note's origin
   const offsetRef = useRef({ x: 0, y: 0 });
   // For resize operations we remember the starting pointer position and note
@@ -68,6 +68,10 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     start: number;
     startWidth: number;
     startHeight: number;
+    startX: number;
+    startY: number;
+    centerX: number;
+    centerY: number;
   } | null>(null);
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
@@ -132,11 +136,18 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       if (touchesRef.current.size === 2) {
         const [a, b] = Array.from(touchesRef.current.values());
         const start = Math.hypot(a.x - b.x, a.y - b.y);
+        const midX = (a.x + b.x) / 2;
+        const midY = (a.y + b.y) / 2;
+        const center = toBoard(midX, midY);
         modeRef.current = 'pinch';
         pinchRef.current = {
           start,
           startWidth: note.width,
           startHeight: note.height,
+          startX: note.x,
+          startY: note.y,
+          centerX: center.x,
+          centerY: center.y,
         };
         return;
       }
@@ -167,11 +178,26 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     if (modeRef.current === 'pinch' && pinchRef.current && touchesRef.current.size === 2) {
       const [a, b] = Array.from(touchesRef.current.values());
       const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const centerScreenX = (a.x + b.x) / 2;
+      const centerScreenY = (a.y + b.y) / 2;
+      const center = toBoard(centerScreenX, centerScreenY);
       const ratio = dist / pinchRef.current.start;
       const newWidth = Math.max(80, pinchRef.current.startWidth * ratio);
       const newHeight = Math.max(60, pinchRef.current.startHeight * ratio);
-      onUpdate(note.id, { width: newWidth, height: newHeight });
-      pinchRef.current = { start: dist, startWidth: newWidth, startHeight: newHeight };
+      const newX =
+        center.x + (pinchRef.current.startX - pinchRef.current.centerX) * ratio;
+      const newY =
+        center.y + (pinchRef.current.startY - pinchRef.current.centerY) * ratio;
+      onUpdate(note.id, { width: newWidth, height: newHeight, x: newX, y: newY });
+      pinchRef.current = {
+        start: dist,
+        startWidth: newWidth,
+        startHeight: newHeight,
+        startX: newX,
+        startY: newY,
+        centerX: center.x,
+        centerY: center.y,
+      };
       return;
     }
     if (modeRef.current === 'drag') {
