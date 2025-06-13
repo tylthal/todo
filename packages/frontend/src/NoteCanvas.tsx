@@ -133,8 +133,11 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const zoomRef = useRef(zoom);
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Start panning the board. If the pointer originated on a locked note,
-    // keep the selection so its controls remain accessible.
+    // Start panning the board. Ignore non-primary mouse buttons so a right
+    // click can open the context menu without initiating a pan gesture.
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // If the pointer originated on a locked note, keep the selection so its
+    // controls remain accessible.
     setContextMenu(null);
     const locked = (e.target as HTMLElement).closest('.note.locked');
     if (!locked) onSelect(null);
@@ -399,6 +402,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
         <div
           className="canvas-context-menu"
           style={{ left: contextMenu.x, top: contextMenu.y }}
+          onPointerDown={e => e.stopPropagation()}
         >
           {contextMenu.noteId != null && (
             <button onClick={handleCopy}>Copy</button>
