@@ -26,6 +26,7 @@ function create(shape, all = [], snap = false) {
 })();
 
 // Snapping when near other shape
+// Horizontal snapping when near other shape
 (function(){
   const shape = { id: 1, x: 0, y: 0, width: 50, height: 50, zIndex: 1, color: '#fff', archived: false };
   const other = { id: 2, x: 100, y: 0, width: 50, height: 50, zIndex: 1, color: '#fff', archived: false };
@@ -33,6 +34,16 @@ function create(shape, all = [], snap = false) {
   si.pointerDown({ clientX: 0, clientY: 0, target: { closest: () => null }, pointerId: 1 });
   si.pointerMove({ clientX: 93, clientY: 0 });
   assert.strictEqual(shape.x, 100);
+})();
+
+// Vertical snapping when near other shape
+(function(){
+  const shape = { id: 1, x: 0, y: 0, width: 50, height: 50, zIndex: 1, color: '#fff', archived: false };
+  const other = { id: 2, x: 0, y: 100, width: 50, height: 50, zIndex: 1, color: '#fff', archived: false };
+  const { si } = create(shape, [shape, other], true);
+  si.pointerDown({ clientX: 0, clientY: 0, target: { closest: () => null }, pointerId: 1 });
+  si.pointerMove({ clientX: 0, clientY: 93 });
+  assert.strictEqual(shape.y, 100);
 })();
 
 // Updating options mid-drag should not reset the drag offset
