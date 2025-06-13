@@ -32,6 +32,11 @@ export class ShapeInteractions<T extends Shape> {
 
   constructor(private opts: ShapeInteractionOptions<T>) {}
 
+  /** Update the option values without resetting interaction state */
+  updateOptions(opts: ShapeInteractionOptions<T>) {
+    this.opts = { ...this.opts, ...opts };
+  }
+
   private toBoard(clientX: number, clientY: number) {
     const { zoom, offset } = this.opts;
     return { x: (clientX - offset.x) / zoom, y: (clientY - offset.y) / zoom };
