@@ -1,0 +1,82 @@
+import { Auth } from '@aws-amplify/auth';
+import type { Workspace, Note } from '@sticky-notes/shared';
+
+async function authorizedFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const session = await Auth.currentSession();
+  const token = session.getIdToken().getJwtToken();
+  const headers = new Headers(init.headers || {});
+  headers.set('Authorization', `Bearer ${token}`);
+  return fetch(input, { ...init, headers });
+}
+
+export async function getWorkspaces(): Promise<Workspace[]> {
+  const url = `${import.meta.env.VITE_API_URL}/workspaces`;
+  const res = await authorizedFetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getWorkspace(id: number): Promise<Workspace> {
+  const url = `${import.meta.env.VITE_API_URL}/workspaces/${id}`;
+  const res = await authorizedFetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function createWorkspace(data: Partial<Workspace>): Promise<Workspace> {
+  const url = `${import.meta.env.VITE_API_URL}/workspaces`;
+  const res = await authorizedFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function updateWorkspace(id: number, data: Partial<Workspace>): Promise<Workspace> {
+  const url = `${import.meta.env.VITE_API_URL}/workspaces/${id}`;
+  const res = await authorizedFetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteWorkspace(id: number): Promise<void> {
+  const url = `${import.meta.env.VITE_API_URL}/workspaces/${id}`;
+  const res = await authorizedFetch(url, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+}
+
+export async function createNote(data: Partial<Note> & { workspaceId: number }): Promise<Note> {
+  const url = `${import.meta.env.VITE_API_URL}/notes`;
+  const res = await authorizedFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function updateNote(id: number, data: Partial<Note> & { workspaceId: number }): Promise<Note> {
+  const url = `${import.meta.env.VITE_API_URL}/notes/${id}`;
+  const res = await authorizedFetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getNotes(workspaceId: number): Promise<Note[]> {
+  const url = `${import.meta.env.VITE_API_URL}/notes?workspaceId=${workspaceId}`;
+  const res = await authorizedFetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
