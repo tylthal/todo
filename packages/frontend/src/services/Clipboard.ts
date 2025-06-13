@@ -18,14 +18,14 @@ export function copyNote(service: AppService, id: number): void {
   emitChange();
 }
 
-export function pasteNote(
+export async function pasteNote(
   service: AppService,
   x?: number,
   y?: number,
-): number | null {
+): Promise<number | null> {
   if (!clipboard) return null;
   const original = clipboard;
-  const newId = service.addNote();
+  const newId = await service.addNote();
   service.updateNote(newId, {
     content: original.content,
     width: original.width,
