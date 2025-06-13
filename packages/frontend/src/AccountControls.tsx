@@ -5,8 +5,7 @@ import ConfirmDialog from './ConfirmDialog';
 import './App.css';
 
 // Header area that displays workspace management controls and a simple
-// authentication menu. It also exposes buttons for toggling archived notes and
-// creating new sticky notes.
+// authentication menu.
 
 export interface WorkspaceInfo {
   id: number;
@@ -14,8 +13,6 @@ export interface WorkspaceInfo {
 }
 
 export interface AccountControlsProps {
-  /** Callback fired when the "Add Note" button is pressed */
-  onAddNote: () => void;
   /** List of available workspaces for the workspace selector */
   workspaces: WorkspaceInfo[];
   /** Id of the workspace currently being displayed */
@@ -31,7 +28,6 @@ export interface AccountControlsProps {
 }
 // Renders account actions and the workspace selector shown at the top of the UI.
 export const AccountControls: React.FC<AccountControlsProps> = ({
-  onAddNote,
   workspaces,
   currentWorkspaceId,
   onCreateWorkspace,
@@ -97,8 +93,6 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
         )}
       </div>
       <div className="account-actions">
-        {/* Primary actions for the current workspace */}
-        <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
         {user ? (
           <div ref={menuRef} className="user-menu">
             <button

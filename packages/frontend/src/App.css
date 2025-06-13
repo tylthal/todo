@@ -179,10 +179,6 @@
   font-size: 1rem;
   cursor: pointer;
 }
-.account .add-note {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-}
 .workspace-controls select {
   margin-right: 0.5rem;
   padding: 0.5rem 0.75rem;
