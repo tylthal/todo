@@ -39,6 +39,8 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
         >
           <i className="fa-solid fa-up-right-and-down-left-from-center" />
         </div>
@@ -51,11 +53,13 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
         >
           <i className="fa-solid fa-rotate" />
         </button>
       )}
     </div>,
-    overlayContainer
+    overlayContainer,
   );
 };
