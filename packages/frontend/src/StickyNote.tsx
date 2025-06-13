@@ -3,6 +3,14 @@ import { Note } from './services/AppService';
 import type { Point } from './zoomUtils';
 import { NoteControls } from './NoteControls';
 
+const SNAP_THRESHOLD = 10;
+const snap = (value: number, candidates: number[], threshold: number) => {
+  for (const c of candidates) {
+    if (Math.abs(value - c) <= threshold) return c;
+  }
+  return value;
+};
+
 // Interactive sticky note component that can be dragged, resized and edited.
 
 // Slightly darken or lighten a hex color by `amount`. Used to compute borders
@@ -43,11 +51,15 @@ export interface StickyNoteProps {
   offset: { x: number; y: number };
   /** Current zoom level of the board */
   zoom: number;
+  /** Array of all notes for snapping */
+  allNotes: Note[];
+  /** Whether snapping is enabled */
+  snapToEdges: boolean;
   /** DOM element to render controls overlay into */
   overlayContainer?: HTMLElement | null;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onSetLocked, onDelete, offset, zoom, overlayContainer }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onSetLocked, onDelete, offset, zoom, allNotes, snapToEdges, overlayContainer }) => {
   // Track the current interaction mode (dragging, resizing or pinching) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | 'pinch' | null>(null);
@@ -202,17 +214,34 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     }
     if (modeRef.current === 'drag') {
       // Move the note according to the pointer, keeping the initial offset.
-      onUpdate(note.id, {
-        x: pos.x - offsetRef.current.x,
-        y: pos.y - offsetRef.current.y,
-      });
+      let newX = pos.x - offsetRef.current.x;
+      let newY = pos.y - offsetRef.current.y;
+      if (snapToEdges) {
+        const threshold = SNAP_THRESHOLD / zoom;
+        const others = allNotes.filter(n => n.id !== note.id);
+        const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
+        const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
+        newX = snap(newX, xEdges, threshold);
+        newY = snap(newY, yEdges, threshold);
+      }
+      onUpdate(note.id, { x: newX, y: newY });
     }
     if (modeRef.current === 'resize') {
       // Resize the note based on pointer delta from the start of the gesture.
       const dx = pos.x - resizeRef.current.startX;
       const dy = pos.y - resizeRef.current.startY;
-      const newWidth = Math.max(80, resizeRef.current.startWidth + dx);
-      const newHeight = Math.max(60, resizeRef.current.startHeight + dy);
+      let newWidth = Math.max(80, resizeRef.current.startWidth + dx);
+      let newHeight = Math.max(60, resizeRef.current.startHeight + dy);
+      if (snapToEdges) {
+        const threshold = SNAP_THRESHOLD / zoom;
+        const others = allNotes.filter(n => n.id !== note.id);
+        const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
+        const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
+        const snappedRight = snap(note.x + newWidth, xEdges, threshold);
+        const snappedBottom = snap(note.y + newHeight, yEdges, threshold);
+        newWidth = Math.max(80, snappedRight - note.x);
+        newHeight = Math.max(60, snappedBottom - note.y);
+      }
       onUpdate(note.id, { width: newWidth, height: newHeight });
     }
   };

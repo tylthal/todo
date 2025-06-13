@@ -44,6 +44,8 @@ export interface NoteCanvasProps {
   zoom: number;
   /** Set a new zoom level */
   setZoom: (z: number) => void;
+  /** Whether notes should snap to each other's edges */
+  snapToEdges: boolean;
 }
 
 export const NoteCanvas: React.FC<NoteCanvasProps> = ({
@@ -58,7 +60,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   offset,
   setOffset,
   zoom,
-  setZoom
+  setZoom,
+  snapToEdges
 }) => {
   // Temporary state used while the user is panning the board with a pointer
   const panRef = useRef<{ startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
@@ -408,6 +411,8 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             onSelect={onSelect}
             offset={offset}
             zoom={zoom}
+            allNotes={notes}
+            snapToEdges={snapToEdges}
             overlayContainer={overlayRef.current}
           />
         ))}
