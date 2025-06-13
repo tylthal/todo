@@ -77,19 +77,25 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     }
   }, [editing]);
 
-  // Adjust text size to fit within the note whenever content or size changes
+  // Adjust text size to fit within the note whenever content, size or editing
+  // state changes. When editing, the content element is not rendered, so we
+  // only perform the calculation once editing finishes.
   useEffect(() => {
+    if (editing) return;
     const contentEl = contentRef.current;
     if (!contentEl) return;
 
     let size = MAX_FONT_SIZE;
     contentEl.style.fontSize = `${size}rem`;
-    while (size > MIN_FONT_SIZE && contentEl.scrollHeight > contentEl.clientHeight) {
+    while (
+      size > MIN_FONT_SIZE &&
+      contentEl.scrollHeight > contentEl.clientHeight
+    ) {
       size = Math.max(MIN_FONT_SIZE, size - 0.05);
       contentEl.style.fontSize = `${size}rem`;
     }
     setFontSize(size);
-  }, [note.width, note.height, note.content]);
+  }, [note.width, note.height, note.content, editing]);
 
   // Convert screen coordinates to board coordinates taking zoom/offset into
   // account.
