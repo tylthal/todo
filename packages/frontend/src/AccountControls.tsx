@@ -99,7 +99,6 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
       <div className="account-actions">
         {/* Primary actions for the current workspace */}
         <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
-        <button onClick={onToggleShowArchived}>{showArchived ? 'Hide Archived' : 'Show Archived'}</button>
         {user ? (
           <div ref={menuRef} className="user-menu">
             <button
@@ -111,6 +110,9 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
             </button>
             {menuOpen && (
               <div className="user-dropdown">
+                <button onClick={onToggleShowArchived}>
+                  {showArchived ? 'Hide Archived' : 'Show Archived'}
+                </button>
                 <button
                   onClick={() => {
                     logout();
