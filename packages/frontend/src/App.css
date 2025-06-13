@@ -465,4 +465,10 @@
   .toolbar button {
     margin: 0.25rem;
   }
+
+  /* Ensure custom toolbar controls like the color palette
+     get the same spacing as regular buttons */
+  .toolbar .palette-container {
+    margin: 0.25rem;
+  }
 }
