@@ -208,3 +208,31 @@ For Windows cmd.exe:
 set S3_BUCKET="$(terraform -chdir=infra output -raw bucket_name)"
 set CLOUDFRONT_DISTRIBUTION_ID="$(terraform -chdir=infra output -raw cloudfront_distribution_id)"
 ```
+
+### Backend Deployment
+
+Update the Lambda function after making backend changes with:
+
+```bash
+npm run deploy:backend
+```
+
+The script compiles the backend, packages the Lambda code and uploads it using the AWS CLI. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
+
+For Bash or other Unix shells:
+
+```bash
+export LAMBDA_FUNCTION_NAME=$(terraform -chdir=infra output -raw lambda_function_name)
+```
+
+For PowerShell:
+
+```powershell
+$Env:LAMBDA_FUNCTION_NAME = terraform -chdir=infra output -raw lambda_function_name
+```
+
+For Windows cmd.exe:
+
+```cmd
+set LAMBDA_FUNCTION_NAME="$(terraform -chdir=infra output -raw lambda_function_name)"
+```

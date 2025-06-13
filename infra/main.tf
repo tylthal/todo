@@ -530,3 +530,7 @@ output "api_invoke_url" {
 output "ws_endpoint" {
   value = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
 }
+
+output "lambda_function_name" {
+  value = aws_lambda_function.backend.function_name
+}
