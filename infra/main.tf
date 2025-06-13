@@ -727,6 +727,26 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_integration.note_id_options
   ]
 
+  triggers = {
+    redeploy = sha1(jsonencode([
+      aws_api_gateway_integration.workspaces_post.id,
+      aws_api_gateway_integration.workspaces_get.id,
+      aws_api_gateway_integration.workspaces_options.id,
+      aws_api_gateway_integration.workspace_id_get.id,
+      aws_api_gateway_integration.workspace_id_patch.id,
+      aws_api_gateway_integration.workspace_id_options.id,
+      aws_api_gateway_integration.notes_post.id,
+      aws_api_gateway_integration.notes_get.id,
+      aws_api_gateway_integration.notes_options.id,
+      aws_api_gateway_integration.note_id_patch.id,
+      aws_api_gateway_integration.note_id_options.id
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
   rest_api_id = aws_api_gateway_rest_api.main.id
 }
 
