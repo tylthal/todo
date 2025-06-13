@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
-import { Note } from './services/AppService';
+import './ContextMenu.css';
+import { Note, appService } from './services/AppService';
+import { copyNote, pasteNote, hasClipboard } from './services/Clipboard';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
 const PINCH_SENSITIVITY = 0.5;
@@ -70,6 +72,10 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const offsetRef = useRef(offset);
   // Container used to render note controls above all notes
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [contextMenu, setContextMenu] = useState<
+    { x: number; y: number; noteId: number }
+    | null
+  >(null);
 
   // Keep the refs in sync with the props so event handlers always use the
   // latest values.
@@ -81,6 +87,13 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   useEffect(() => {
     zoomRef.current = zoom;
   }, [zoom]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const close = () => setContextMenu(null);
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [contextMenu]);
 
   /**
    * Zoom using the UI controls. The view should stay centered on the screen
@@ -122,6 +135,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Start panning the board. If the pointer originated on a locked note,
     // keep the selection so its controls remain accessible.
+    setContextMenu(null);
     const locked = (e.target as HTMLElement).closest('.note.locked');
     if (!locked) onSelect(null);
     panRef.current = {
@@ -199,6 +213,35 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     if (touchesRef.current.size < 2) {
       pinchRef.current = null;
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const board = boardRef.current;
+    if (!board) return;
+    const noteEl = (e.target as HTMLElement).closest('.note');
+    if (!noteEl) return;
+    const idAttr = noteEl.getAttribute('data-note-id');
+    if (!idAttr) return;
+    const id = Number(idAttr);
+    if (Number.isNaN(id)) return;
+    const rect = board.getBoundingClientRect();
+    setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, noteId: id });
+    onSelect(id);
+  };
+
+  const handleCopy = () => {
+    if (!contextMenu) return;
+    copyNote(appService, contextMenu.noteId);
+    setContextMenu(null);
+  };
+
+  const handlePaste = () => {
+    const newId = pasteNote(appService);
+    if (newId != null) {
+      onSelect(newId);
+    }
+    setContextMenu(null);
   };
 
   /**
@@ -310,6 +353,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}
       onPointerCancel={pointerUp}
+      onContextMenu={handleContextMenu}
     >
       <div
         className="notes"
@@ -346,6 +390,17 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           '--zoom': zoom,
         } as React.CSSProperties}
       />
+      {contextMenu && (
+        <div
+          className="canvas-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button onClick={handleCopy}>Copy</button>
+          <button onClick={handlePaste} disabled={!hasClipboard()}>
+            Paste
+          </button>
+        </div>
+      )}
       {/* Overlay with buttons and slider to control zoom */}
       <div className="zoom-controls" onPointerDown={e => e.stopPropagation()}>
         <button onClick={() => applyZoom(zoomRef.current * 0.9)} title="Zoom Out">

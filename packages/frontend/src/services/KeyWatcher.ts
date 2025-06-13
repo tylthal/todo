@@ -1,4 +1,5 @@
-import { AppService, Note } from './AppService';
+import { AppService } from './AppService';
+import { copyNote, pasteNote } from './Clipboard';
 
 export interface KeyWatcherOptions {
   /** Get the currently selected note id */
@@ -12,7 +13,6 @@ export interface KeyWatcherOptions {
  * Currently supports copying and pasting notes via Ctrl/Meta+C and Ctrl/Meta+V.
  */
 export class KeyWatcher {
-  private clipboard: Note | null = null;
 
   constructor(private service: AppService, private opts: KeyWatcherOptions) {}
 
@@ -54,28 +54,13 @@ export class KeyWatcher {
   private copySelected(): void {
     const id = this.opts.getSelectedId();
     if (id == null) return;
-    const state = this.service.getState();
-    const ws = state.workspaces.find(w => w.id === state.currentWorkspaceId);
-    const note = ws?.notes.find(n => n.id === id);
-    if (!note) return;
-    this.clipboard = { ...note };
+    copyNote(this.service, id);
   }
 
   private pasteClipboard(): void {
-    if (!this.clipboard) return;
-    const original = this.clipboard;
-    const newId = this.service.addNote();
-    this.service.updateNote(newId, {
-      content: original.content,
-      width: original.width,
-      height: original.height,
-      color: original.color,
-      x: original.x + 20,
-      y: original.y + 20,
-      archived: original.archived,
-      pinned: original.pinned,
-      locked: original.locked,
-    });
-    this.opts.selectNote(newId);
+    const newId = pasteNote(this.service);
+    if (newId != null) {
+      this.opts.selectNote(newId);
+    }
   }
 }
