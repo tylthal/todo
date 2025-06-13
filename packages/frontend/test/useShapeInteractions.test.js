@@ -64,13 +64,22 @@ function create(shape, all = [], snap = false) {
   assert.strictEqual(shape.x, 20);
 })();
 
-// Rotation when using rotate handle
-(function(){
-  const shape = { id: 1, x: 0, y: 0, width: 100, height: 100, rotation: 0, zIndex: 1, color: '#fff', archived: false };
-  const { si } = create(shape);
-  si.pointerDown({ clientX: 100, clientY: 0, target: { closest: sel => sel === '.rotate-handle' ? {} : null }, pointerId: 1 });
-  si.pointerMove({ clientX: 0, clientY: 100 });
-  assert(Math.abs(shape.rotation - 180) < 1e-6);
-})();
+  // Rotation when using rotate handle
+  (function(){
+    const shape = { id: 1, x: 0, y: 0, width: 100, height: 100, rotation: 0, zIndex: 1, color: '#fff', archived: false };
+    const { si } = create(shape);
+    si.pointerDown({ clientX: 100, clientY: 0, target: { closest: sel => sel === '.rotate-handle' ? {} : null }, pointerId: 1 });
+    si.pointerMove({ clientX: 0, clientY: 100 });
+    assert(Math.abs(shape.rotation - 180) < 1e-6);
+  })();
+
+  // onUpdate receives rotation when rotating
+  (function(){
+    const shape = { id: 1, x: 0, y: 0, width: 100, height: 100, rotation: 0, zIndex: 1, color: '#fff', archived: false };
+    const { si, updated } = create(shape);
+    si.pointerDown({ clientX: 100, clientY: 0, target: { closest: sel => sel === '.rotate-handle' ? {} : null }, pointerId: 1 });
+    si.pointerMove({ clientX: 0, clientY: 100 });
+    assert(Math.abs(updated().rotation - 180) < 1e-6);
+  })();
 
 console.log('useShapeInteractions tests passed');
