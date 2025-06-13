@@ -123,7 +123,7 @@ resource "aws_api_gateway_domain_name" "api" {
 
 resource "aws_api_gateway_base_path_mapping" "api" {
   domain_name = aws_api_gateway_domain_name.api.domain_name
-  rest_api_id = aws_api_gateway_rest_api.main.id
+  api_id      = aws_api_gateway_rest_api.main.id
   stage_name  = var.api_stage
 }
 
