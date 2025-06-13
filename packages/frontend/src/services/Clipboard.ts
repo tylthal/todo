@@ -33,6 +33,7 @@ export function pasteNote(
     color: original.color,
     x: x ?? original.x + 20,
     y: y ?? original.y + 20,
+    rotation: original.rotation,
     archived: original.archived,
     pinned: original.pinned,
     locked: original.locked,

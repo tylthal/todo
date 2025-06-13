@@ -152,6 +152,7 @@ export class AppService extends EventEmitter {
       y: (-ws.canvas.offset.y + 40) / ws.canvas.zoom,
       width: 150,
       height: 120,
+      rotation: 0,
       archived: false,
       color: '#fef08a',
       zIndex: newZ,
