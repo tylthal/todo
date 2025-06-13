@@ -106,6 +106,15 @@ production bundle for the frontend only, run:
 npm run build --workspace packages/frontend
 ```
 
+## Code Quality
+
+Run ESLint and Prettier from the repository root:
+
+```bash
+npm run lint    # check code style
+npm run format  # automatically format files
+```
+
 ## Deployment
 
 Infrastructure is managed with [Terraform](https://www.terraform.io/).  The
