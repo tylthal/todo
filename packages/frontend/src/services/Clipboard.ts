@@ -9,7 +9,11 @@ export function copyNote(service: AppService, id: number): void {
   clipboard = note ? { ...note } : null;
 }
 
-export function pasteNote(service: AppService): number | null {
+export function pasteNote(
+  service: AppService,
+  x?: number,
+  y?: number,
+): number | null {
   if (!clipboard) return null;
   const original = clipboard;
   const newId = service.addNote();
@@ -18,8 +22,8 @@ export function pasteNote(service: AppService): number | null {
     width: original.width,
     height: original.height,
     color: original.color,
-    x: original.x + 20,
-    y: original.y + 20,
+    x: x ?? original.x + 20,
+    y: y ?? original.y + 20,
     archived: original.archived,
     pinned: original.pinned,
     locked: original.locked,
