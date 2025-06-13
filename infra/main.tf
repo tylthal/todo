@@ -521,7 +521,12 @@ resource "aws_api_gateway_deployment" "main" {
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id
-  stage_name  = var.api_stage
+}
+
+resource "aws_api_gateway_stage" "main" {
+  stage_name    = var.api_stage
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  deployment_id = aws_api_gateway_deployment.main.id
 }
 
 
