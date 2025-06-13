@@ -113,6 +113,32 @@ resource "aws_route53_record" "frontend" {
   }
 }
 
+resource "aws_api_gateway_domain_name" "api" {
+  domain_name = var.api_domain_name
+  certificate_arn = var.api_certificate_arn
+  endpoint_configuration {
+    types = ["EDGE"]
+  }
+}
+
+resource "aws_api_gateway_base_path_mapping" "api" {
+  domain_name = aws_api_gateway_domain_name.api.domain_name
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  stage_name  = var.api_stage
+}
+
+resource "aws_route53_record" "api" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = var.api_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_api_gateway_domain_name.api.cloudfront_domain_name
+    zone_id                = aws_api_gateway_domain_name.api.cloudfront_zone_id
+    evaluate_target_health = false
+  }
+}
+
 data "aws_route53_zone" "main" {
   name = var.domain_name_root
 }
@@ -525,6 +551,10 @@ output "cognito_hosted_ui_domain" {
 
 output "api_invoke_url" {
   value = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.api_stage}"
+}
+
+output "api_domain_name" {
+  value = aws_api_gateway_domain_name.api.domain_name
 }
 
 output "ws_endpoint" {

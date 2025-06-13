@@ -1,14 +1,16 @@
 # Sticky Notes SaaS
 
 This repository contains a small proof-of-concept implementation and planning
-material for a minimalist sticky notes application.  The code demonstrates the
+material for a minimalist sticky notes application. The code demonstrates the
 core UI interactions while leaving room for a future AWS powered backend.
 
 ## Vision
+
 Create a clean and vibrant web application that lets users manage tasks and idea
 s using interactive sticky notes.
 
 ## MVP Features
+
 - User accounts with AWS Cognito authentication
 - Private boards per user
 - Add, edit, delete, drag and resize notes
@@ -19,6 +21,7 @@ s using interactive sticky notes.
 - Real‑time collaboration among authenticated users
 
 ## Technical Stack
+
 - **Frontend:** React.js hosted via AWS Amplify or CloudFront
 - **Backend:** Serverless architecture using AWS Lambda and API Gateway
 - **Database:** DynamoDB
@@ -47,10 +50,10 @@ Workspaces are now associated with user accounts. The shared
 `ownedWorkspaceIds` and `contributedWorkspaceIds` so the application knows which
 boards a user controls. Every workspace therefore has a single owner account and
 may optionally list contributor accounts.
+
 ## Frontend Service Layer
 
 A new `AppService` manages all client-side state including the active user, workspaces and their canvas data. Components now call the service when mutating state (adding notes, switching workspaces, etc.) and subscribe to its change events to keep React state in sync. These methods will later post updates to the backend.
-
 
 ## Repository Structure
 
@@ -66,7 +69,7 @@ The project uses a monorepo managed with npm workspaces. Source code lives in `p
 Browser ──> Frontend (React / Vite) ──> Backend API (AWS Lambda)
 ```
 
-The frontend is a Vite-based React app responsible for rendering notes and managing local state.  The backend folder contains a placeholder Lambda handler which would be expanded to persist notes in DynamoDB and provide authentication via Cognito.  Shared utilities live under the `shared` package and can be imported by both frontend and backend code.
+The frontend is a Vite-based React app responsible for rendering notes and managing local state. The backend folder contains a placeholder Lambda handler which would be expanded to persist notes in DynamoDB and provide authentication via Cognito. Shared utilities live under the `shared` package and can be imported by both frontend and backend code.
 
 ## Local Development
 
@@ -117,7 +120,7 @@ npm run format  # automatically format files
 
 ## Deployment
 
-Infrastructure is managed with [Terraform](https://www.terraform.io/).  The
+Infrastructure is managed with [Terraform](https://www.terraform.io/). The
 configuration lives in the `infra/` directory and provisions an S3 bucket, a
 CloudFront distribution and Route53 record pointing `notes.thalman.org` to the
 distribution.
@@ -143,17 +146,23 @@ distribution.
      -var="bucket_name=<your-bucket>" \
      -var="aws_region=<region>" \
      -var="acm_certificate_arn=<certificate-arn>" \
+     -var="api_domain_name=<api-domain>" \
+     -var="api_certificate_arn=<api-cert-arn>" \
      -var="google_client_id=<google-oauth-client-id>" \
      -var="google_client_secret=<google-oauth-secret>" \
      -var="callback_urls=[\"https://notes.example.com/callback\"]" \
       -var="logout_urls=[\"https://notes.example.com\"]" \
       -var="cognito_domain_prefix=<unique-prefix>"
    ```
-  Terraform will output the CloudFront distribution ID which is required for
-  frontend deployments.
-  It also prints the `user_pool_id`, `user_pool_client_id` and
-  `cognito_hosted_ui_domain` values used when configuring the frontend
-  authentication flow.
+   Terraform will output the CloudFront distribution ID which is required for
+   frontend deployments.
+   It also prints the `user_pool_id`, `user_pool_client_id` and
+   `cognito_hosted_ui_domain` values used when configuring the frontend
+   authentication flow.
+
+Terraform also configures a custom domain for the API when `api_domain_name`
+and `api_certificate_arn` are provided so the backend can be accessed via
+HTTPS.
 
 ### Authentication configuration
 
@@ -167,11 +176,13 @@ VITE_COGNITO_CLIENT_ID=<your-app-client-id>
 VITE_COGNITO_DOMAIN=<your-hosted-ui-domain>
 VITE_COGNITO_REDIRECT_URI=<http://localhost:5173>
 VITE_COGNITO_LOGOUT_URI=<http://localhost:5173>
+VITE_API_URL=<https://api.notes.example.com>
 ```
 
 `VITE_COGNITO_REDIRECT_URI` should match one of the callback URLs specified in
 your Cognito app client settings while `VITE_COGNITO_LOGOUT_URI` must be an
 allowed logout URL.
+`VITE_API_URL` should point to the API domain output by Terraform.
 
 ### Deploying the frontend
 
