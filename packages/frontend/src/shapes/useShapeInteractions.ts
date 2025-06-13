@@ -16,10 +16,16 @@ export interface ShapeInteractionOptions<T extends Shape> {
 const SNAP_THRESHOLD = 10;
 
 function snap(value: number, candidates: number[], threshold: number) {
+  let closest = value;
+  let minDist = threshold + 1;
   for (const c of candidates) {
-    if (Math.abs(value - c) <= threshold) return c;
+    const dist = Math.abs(value - c);
+    if (dist <= threshold && dist < minDist) {
+      minDist = dist;
+      closest = c;
+    }
   }
-  return value;
+  return closest;
 }
 
 /**
