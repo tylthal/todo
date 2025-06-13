@@ -73,7 +73,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   // Container used to render note controls above all notes
   const overlayRef = useRef<HTMLDivElement>(null);
   const [contextMenu, setContextMenu] = useState<
-    { x: number; y: number; noteId: number }
+    { x: number; y: number; noteId: number | null }
     | null
   >(null);
 
@@ -220,18 +220,23 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     const board = boardRef.current;
     if (!board) return;
     const noteEl = (e.target as HTMLElement).closest('.note');
-    if (!noteEl) return;
-    const idAttr = noteEl.getAttribute('data-note-id');
-    if (!idAttr) return;
-    const id = Number(idAttr);
-    if (Number.isNaN(id)) return;
+    let id: number | null = null;
+    if (noteEl) {
+      const idAttr = noteEl.getAttribute('data-note-id');
+      if (idAttr) {
+        const parsed = Number(idAttr);
+        if (!Number.isNaN(parsed)) {
+          id = parsed;
+        }
+      }
+    }
     const rect = board.getBoundingClientRect();
     setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, noteId: id });
-    onSelect(id);
+    if (id != null) onSelect(id);
   };
 
   const handleCopy = () => {
-    if (!contextMenu) return;
+    if (!contextMenu || contextMenu.noteId == null) return;
     copyNote(appService, contextMenu.noteId);
     setContextMenu(null);
   };
@@ -395,7 +400,9 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           className="canvas-context-menu"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
-          <button onClick={handleCopy}>Copy</button>
+          {contextMenu.noteId != null && (
+            <button onClick={handleCopy}>Copy</button>
+          )}
           <button onClick={handlePaste} disabled={!hasClipboard()}>
             Paste
           </button>
