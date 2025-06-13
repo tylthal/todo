@@ -151,10 +151,6 @@ const AppContent: React.FC = () => {
   return (
     <div className="app">
         <AccountControls
-          showArchived={showArchived}
-          onToggleShowArchived={toggleShowArchived}
-          snapToEdges={snapToEdges}
-          onToggleSnap={toggleSnapToEdges}
           workspaces={workspaces.map(w => ({ id: w.id, name: w.name }))}
           currentWorkspaceId={currentWorkspaceId}
           onCreateWorkspace={createWorkspace}
