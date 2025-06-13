@@ -1,0 +1,25 @@
+.canvas-context-menu {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #1e293b;
+  z-index: 1000;
+}
+
+.canvas-context-menu button {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.canvas-context-menu button:hover {
+  background: #e2e8f0;
+}
