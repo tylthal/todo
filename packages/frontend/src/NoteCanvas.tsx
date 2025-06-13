@@ -245,7 +245,11 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   };
 
   const handlePaste = () => {
-    const newId = pasteNote(appService);
+    if (!contextMenu) return;
+    // Convert the menu position from screen space to board coordinates
+    const boardX = (contextMenu.x - offset.x) / zoom;
+    const boardY = (contextMenu.y - offset.y) / zoom;
+    const newId = pasteNote(appService, boardX, boardY);
     if (newId != null) {
       onSelect(newId);
     }
