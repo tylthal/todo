@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandlerV2 } from 'aws-lambda';
+import { APIGatewayProxyHandler } from 'aws-lambda';
 import { DynamoDB, ApiGatewayManagementApi } from 'aws-sdk';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
@@ -7,7 +7,7 @@ const WS_ENDPOINT = process.env.WS_ENDPOINT as string;
 const db = new DynamoDB.DocumentClient();
 const api = WS_ENDPOINT ? new ApiGatewayManagementApi({ endpoint: WS_ENDPOINT }) : undefined;
 
-export const subscribe: APIGatewayProxyHandlerV2 = async (event) => {
+export const subscribe: APIGatewayProxyHandler = async (event) => {
   const connectionId = event.requestContext.connectionId as string;
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
@@ -28,7 +28,7 @@ export const subscribe: APIGatewayProxyHandlerV2 = async (event) => {
   return { statusCode: 200, body: 'Subscribed' };
 };
 
-export const unsubscribe: APIGatewayProxyHandlerV2 = async (event) => {
+export const unsubscribe: APIGatewayProxyHandler = async (event) => {
   const connectionId = event.requestContext.connectionId as string;
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
@@ -49,7 +49,7 @@ export const unsubscribe: APIGatewayProxyHandlerV2 = async (event) => {
   return { statusCode: 200, body: 'Unsubscribed' };
 };
 
-export const disconnect: APIGatewayProxyHandlerV2 = async (event) => {
+export const disconnect: APIGatewayProxyHandler = async (event) => {
   const connectionId = event.requestContext.connectionId as string;
 
   const scan = await db
