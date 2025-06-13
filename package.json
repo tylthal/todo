@@ -16,10 +16,12 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\""
   },
+  "dependencies": {
+    "archiver": "^7.0.1"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
-    "archiver": "^7.0.1",
     "eslint": "^8.56.0",
     "prettier": "^3.1.1"
   }
