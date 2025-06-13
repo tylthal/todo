@@ -88,6 +88,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: attrs.sub,
           name: attrs.name || attrs.email || 'User',
           email: attrs.email,
+          ownedWorkspaceIds: [],
+          contributedWorkspaceIds: [],
         };
         // Temporary debug output so we can inspect the authenticated user in
         // the browser console. This should be removed once authentication is
