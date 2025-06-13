@@ -54,7 +54,7 @@ export class AppService extends EventEmitter {
 
   /** Get a readonly snapshot of the current state. */
   getState(): AppState {
-    return JSON.parse(JSON.stringify(this.state));
+    return structuredClone(this.state);
   }
 
   /** Subscribe to state changes. Returns an unsubscribe function. */
