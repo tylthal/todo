@@ -1,5 +1,14 @@
 import { EventEmitter } from 'events';
 import type { TypedEmitter, User, Note, Workspace as SharedWorkspace } from '@sticky-notes/shared';
+import {
+  getWorkspaces,
+  getNotes,
+  createWorkspace as apiCreateWorkspace,
+  updateWorkspace as apiUpdateWorkspace,
+  deleteWorkspace as apiDeleteWorkspace,
+  createNote as apiCreateNote,
+  updateNote as apiUpdateNote,
+} from './api';
 
 
 
@@ -72,13 +81,39 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
 
   private emitChange(): void {
     this.emit('change', this.getState());
-    this.syncWithBackend();
   }
 
-  /** Placeholder for future API calls to persist state. */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private async syncWithBackend(): Promise<void> {
-    // In a real implementation this would POST the state diff to the API.
+  /** Fetch workspaces from the backend and hydrate state */
+  private async loadWorkspaces(): Promise<void> {
+    try {
+      const data = await getWorkspaces();
+      this.state.workspaces = data.map(w => ({
+        ...w,
+        notes: [],
+        canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
+      }));
+      if (this.state.workspaces.length > 0) {
+        this.state.currentWorkspaceId = this.state.workspaces[0].id;
+        await this.loadNotes(this.state.currentWorkspaceId);
+      }
+      this.emitChange();
+    } catch (err) {
+      console.error('Failed to load workspaces', err);
+    }
+  }
+
+  /** Fetch notes for a workspace */
+  private async loadNotes(workspaceId: number): Promise<void> {
+    try {
+      const ws = this.state.workspaces.find(w => w.id === workspaceId);
+      if (!ws) return;
+      const notes = await getNotes(workspaceId);
+      ws.notes = notes;
+      ws.canvas.zCounter = notes.reduce((m, n) => Math.max(m, n.zIndex), 0);
+      this.emitChange();
+    } catch (err) {
+      console.error('Failed to load notes', err);
+    }
   }
 
   // ─── User Actions ────────────────────────────────────────────────────────
@@ -87,52 +122,56 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
   setUser(user: User | null): void {
     this.state.user = user;
     this.emitChange();
+    if (user) {
+      void this.loadWorkspaces();
+    }
   }
 
   // ─── Workspace Actions ───────────────────────────────────────────────────
 
   /** Create a new workspace and switch to it */
-  createWorkspace(name?: string): number {
-    const id = Date.now();
+  async createWorkspace(name?: string): Promise<number> {
+    const created = await apiCreateWorkspace({ name });
     const ws: Workspace = {
-      id,
-      name: name || `Workspace ${this.state.workspaces.length + 1}`,
-      ownerId: this.state.user?.id ?? null,
-      contributorIds: [],
+      ...created,
       notes: [],
       canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
     };
     this.state.workspaces.push(ws);
-    this.state.currentWorkspaceId = id;
+    this.state.currentWorkspaceId = ws.id;
     this.emitChange();
-    return id;
+    return ws.id;
   }
 
   /** Rename a workspace */
-  renameWorkspace(id: number, name: string): void {
+  async renameWorkspace(id: number, name: string): Promise<void> {
     const ws = this.state.workspaces.find(w => w.id === id);
     if (!ws || ws.id === 1) return; // default workspace immutable
-    ws.name = name;
+    const updated = await apiUpdateWorkspace(id, { name });
+    ws.name = updated.name;
     this.emitChange();
   }
 
   /** Switch to another workspace */
-  switchWorkspace(id: number): void {
+  async switchWorkspace(id: number): Promise<void> {
     if (this.state.workspaces.some(w => w.id === id)) {
       this.state.currentWorkspaceId = id;
       this.emitChange();
+      await this.loadNotes(id);
     }
   }
 
   /** Delete a workspace */
-  deleteWorkspace(id: number): void {
+  async deleteWorkspace(id: number): Promise<void> {
     if (id === 1) return; // prevent deleting default workspace
     const index = this.state.workspaces.findIndex(w => w.id === id);
     if (index === -1) return;
+    await apiDeleteWorkspace(id);
     this.state.workspaces.splice(index, 1);
     if (this.state.currentWorkspaceId === id) {
       const next = this.state.workspaces[0];
       this.state.currentWorkspaceId = next ? next.id : 1;
+      await this.loadNotes(this.state.currentWorkspaceId);
     }
     this.emitChange();
   }
@@ -147,12 +186,10 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
   }
 
   /** Add a new note to the active workspace */
-  addNote(): number {
+  async addNote(): Promise<number> {
     const ws = this.currentWorkspace;
-    const id = Date.now();
     const newZ = ws.canvas.zCounter + 1;
-    const note: Note = {
-      id,
+    const payload: Partial<Note> & { workspaceId: number } = {
       content: '',
       x: (-ws.canvas.offset.x + 40) / ws.canvas.zoom,
       y: (-ws.canvas.offset.y + 40) / ws.canvas.zoom,
@@ -164,11 +201,13 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
       zIndex: newZ,
       pinned: false,
       locked: false,
+      workspaceId: ws.id,
     };
-    ws.canvas.zCounter = newZ;
-    ws.notes.push(note);
+    const created = await apiCreateNote(payload);
+    ws.canvas.zCounter = Math.max(ws.canvas.zCounter, created.zIndex);
+    ws.notes.push(created);
     this.emitChange();
-    return id;
+    return created.id;
   }
 
   /** Update an existing note */
@@ -178,6 +217,9 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
     if (!note) return;
     Object.assign(note, data);
     this.emitChange();
+    void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+      console.error('Failed to update note', err);
+    });
   }
 
   /**
@@ -192,6 +234,9 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
     ws.canvas.zCounter = newZ;
     note.zIndex = newZ;
     this.emitChange();
+    void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+      console.error('Failed to update note order', err);
+    });
   }
 
   /** Move a note to the back of the z-order */
@@ -202,6 +247,9 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
     const minZ = Math.min(...ws.notes.map(n => n.zIndex));
     note.zIndex = minZ - 1;
     this.emitChange();
+    void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+      console.error('Failed to update note order', err);
+    });
   }
 
   /** Pin or unpin a note behind others */
@@ -214,8 +262,14 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
       const minZ = Math.min(...ws.notes.map(n => n.zIndex));
       note.zIndex = minZ - 1;
       this.emitChange();
+      void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+        console.error('Failed to pin note', err);
+      });
     } else {
       this.bringNoteToFront(id);
+      void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+        console.error('Failed to unpin note', err);
+      });
     }
   }
 
@@ -226,6 +280,9 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
     if (!note) return;
     note.locked = locked;
     this.emitChange();
+    void apiUpdateNote(id, { ...note, workspaceId: ws.id }).catch(err => {
+      console.error('Failed to set lock state', err);
+    });
   }
 
   /** Archive or unarchive a note */
@@ -240,6 +297,9 @@ export class AppService extends EventEmitter implements TypedEmitter<AppServiceE
     if (index === -1) return;
     ws.notes.splice(index, 1);
     this.emitChange();
+    void apiUpdateNote(id, { workspaceId: ws.id, archived: true }).catch(err => {
+      console.error('Failed to delete note', err);
+    });
   }
 
   /** Set canvas pan offset */

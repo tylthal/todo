@@ -58,9 +58,11 @@ export class KeyWatcher {
   }
 
   private pasteClipboard(): void {
-    const newId = pasteNote(this.service);
-    if (newId != null) {
-      this.opts.selectNote(newId);
-    }
+    void (async () => {
+      const newId = await pasteNote(this.service);
+      if (newId != null) {
+        this.opts.selectNote(newId);
+      }
+    })();
   }
 }

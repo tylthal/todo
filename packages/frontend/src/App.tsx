@@ -33,7 +33,7 @@ const AppContent: React.FC = () => {
   const selectedNote = workspace.notes.find(n => n.id === selectedId) || null;
 
   const addNote = () => {
-    appService.addNote();
+    void appService.addNote();
   };
 
   const updateNote = (id: number, data: Partial<Note>) => {
@@ -107,7 +107,7 @@ const AppContent: React.FC = () => {
           onCancel={close.reject}
         />
       ));
-      appService.createWorkspace(name.trim());
+      await appService.createWorkspace(name.trim());
       setSelectedId(null);
     } catch {
       /* cancelled */
@@ -115,7 +115,7 @@ const AppContent: React.FC = () => {
   };
 
   const deleteWorkspace = (id: number) => {
-    appService.deleteWorkspace(id);
+    void appService.deleteWorkspace(id);
     setSelectedId(null);
   };
 
@@ -132,14 +132,14 @@ const AppContent: React.FC = () => {
         />
       ));
       if (!name || name.trim() === '') return;
-      appService.renameWorkspace(id, name.trim());
+      await appService.renameWorkspace(id, name.trim());
     } catch {
       /* user cancelled */
     }
   };
 
   const switchWorkspace = (id: number) => {
-    appService.switchWorkspace(id);
+    void appService.switchWorkspace(id);
     setSelectedId(null);
   };
 
