@@ -64,7 +64,13 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
   return createPortal(
     <div
       className="note-controls"
-      style={{ left: note.x, top: note.y, width: note.width, height: note.height }}
+      style={{
+        left: note.x,
+        top: note.y,
+        width: note.width,
+        height: note.height,
+        transform: `rotate(${note.rotation}deg)`,
+      }}
     >
       <div className="note-toolbar">
         <ColorPalette
@@ -140,7 +146,8 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
         </div>
       )}
       {!note.locked && (
-        <div
+        <button
+          type="button"
           className="rotate-handle note-control"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -148,7 +155,7 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           onPointerCancel={onPointerCancel}
         >
           <i className="fa-solid fa-rotate" />
-        </div>
+        </button>
       )}
     </div>,
     overlayContainer

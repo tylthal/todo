@@ -274,6 +274,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         backgroundColor: note.color,
         borderColor: adjustColor(note.color, -30),
         zIndex: note.zIndex,
+        transform: `rotate(${note.rotation}deg)`,
         '--rotation': `${note.rotation}deg`,
       }}
       onPointerDown={pointerDown}
