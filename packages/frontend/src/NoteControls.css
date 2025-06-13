@@ -54,6 +54,7 @@
   justify-content: center;
   font-size: calc(1.25rem / var(--zoom));
   cursor: pointer;
+  user-select: none;
 }
 
 .note-control:hover {
@@ -124,7 +125,6 @@
 .menu-button {
   position: static;
 }
-
 
 .note-menu {
   position: absolute;
