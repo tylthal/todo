@@ -71,7 +71,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
   onSnapLinesChange,
 }) => {
   // Track the current interaction mode (pinching only; drag/resize handled by ShapeInteractions)
-  const modeRef = useRef<'drag' | 'resize' | 'pinch' | null>(null);
+  const modeRef = useRef<'drag' | 'resize' | 'rotate' | 'pinch' | null>(null);
   // Track active touch points for pinch gestures
   const touchesRef = useRef(new Map<number, Point>());
   // Information about an active pinch gesture
@@ -189,6 +189,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
 
     if (target.closest('.resize-handle')) {
       modeRef.current = 'resize';
+    } else if (target.closest('.rotate-handle')) {
+      modeRef.current = 'rotate';
     } else {
       modeRef.current = 'drag';
     }
@@ -272,6 +274,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         backgroundColor: note.color,
         borderColor: adjustColor(note.color, -30),
         zIndex: note.zIndex,
+        '--rotation': `${note.rotation}deg`,
       }}
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}

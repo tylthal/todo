@@ -172,6 +172,18 @@
   opacity: 1;
 }
 
+.rotate-handle {
+  top: calc(4px / var(--zoom));
+  left: calc(4px / var(--zoom));
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.rotate-handle:hover {
+  opacity: 1;
+}
+
 /* Stack menu items vertically on very small screens */
 @media (max-width: 480px) {
   .note-menu {
