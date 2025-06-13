@@ -178,6 +178,14 @@
   opacity: 1;
 }
 
+/* Use a minimal look for resize and rotate handles */
+.resize-handle,
+.rotate-handle {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
 .rotate-handle {
   bottom: calc(4px / var(--zoom));
   left: calc(4px / var(--zoom));
