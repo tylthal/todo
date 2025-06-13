@@ -511,7 +511,7 @@ resource "aws_apigatewayv2_integration" "ws_lambda" {
   api_id           = aws_apigatewayv2_api.ws.id
   integration_type = "AWS_PROXY"
   integration_uri  = aws_lambda_function.backend.invoke_arn
-  payload_format_version = "2.0"
+  payload_format_version = "1.0"
 }
 
 resource "aws_apigatewayv2_route" "ws_connect" {
