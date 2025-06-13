@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import type { User, Note } from '@sticky-notes/shared';
+import type { User, Note, Workspace as SharedWorkspace } from '@sticky-notes/shared';
 
 
 
@@ -12,9 +12,7 @@ export interface CanvasState {
 }
 
 /** Workspace groups a canvas and its notes */
-export interface Workspace {
-  id: number;
-  name: string;
+export interface Workspace extends SharedWorkspace {
   notes: Note[];
   canvas: CanvasState;
 }
@@ -41,6 +39,8 @@ export class AppService extends EventEmitter {
     const defaultWorkspace: Workspace = {
       id: 1,
       name: 'Default',
+      ownerId: null,
+      contributorIds: [],
       notes: [],
       canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
     };
@@ -93,6 +93,8 @@ export class AppService extends EventEmitter {
     const ws: Workspace = {
       id,
       name: name || `Workspace ${this.state.workspaces.length + 1}`,
+      ownerId: this.state.user?.id ?? null,
+      contributorIds: [],
       notes: [],
       canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
     };
