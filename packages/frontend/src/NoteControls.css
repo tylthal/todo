@@ -82,7 +82,7 @@
 
 .color-palette {
   position: absolute;
-  bottom: calc(100% + 4px / var(--zoom));
+  top: calc(100% + 4px / var(--zoom));
   right: calc(-4px / var(--zoom));
   display: flex;
   gap: calc(4px / var(--zoom));
