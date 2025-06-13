@@ -3,6 +3,7 @@ import { DynamoDB } from 'aws-sdk';
 import { Note, Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
 import { broadcastWorkspaceEvent } from './websocket';
+import { CORS_HEADERS } from './cors';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -14,7 +15,7 @@ export const createNote: APIGatewayProxyHandler = async (event) => {
     : {};
   const workspaceId = input.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, body: 'Missing workspaceId' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -22,10 +23,10 @@ export const createNote: APIGatewayProxyHandler = async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   const note: Note = {
@@ -61,6 +62,7 @@ export const createNote: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 201,
+    headers: CORS_HEADERS,
     body: JSON.stringify(note),
   };
 };
@@ -69,12 +71,12 @@ export const updateNote: APIGatewayProxyHandler = async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
-    return { statusCode: 400, body: 'Missing id' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing id' };
   }
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, body: 'Missing workspaceId' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -82,10 +84,10 @@ export const updateNote: APIGatewayProxyHandler = async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   const exprParts: string[] = [];
@@ -133,6 +135,7 @@ export const updateNote: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 200,
+    headers: CORS_HEADERS,
     body: JSON.stringify(updated.Attributes),
   };
 };
@@ -141,7 +144,7 @@ export const listNotes: APIGatewayProxyHandler = async (event) => {
   const userId = getUserId(event);
   const workspaceId = event.queryStringParameters?.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, body: 'Missing workspaceId' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -149,10 +152,10 @@ export const listNotes: APIGatewayProxyHandler = async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   const res = await db
@@ -169,6 +172,7 @@ export const listNotes: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 200,
+    headers: CORS_HEADERS,
     body: JSON.stringify(notes),
   };
 };

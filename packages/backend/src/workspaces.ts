@@ -3,6 +3,7 @@ import { DynamoDB } from 'aws-sdk';
 import { Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
 import { broadcastWorkspaceEvent } from './websocket';
+import { CORS_HEADERS } from './cors';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -49,6 +50,7 @@ export const createWorkspace: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 201,
+    headers: CORS_HEADERS,
     body: JSON.stringify(workspace),
   };
 };
@@ -61,7 +63,7 @@ export const getWorkspace: APIGatewayProxyHandler = async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
-    return { statusCode: 400, body: 'Missing id' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing id' };
   }
 
   const data = await db
@@ -70,15 +72,16 @@ export const getWorkspace: APIGatewayProxyHandler = async (event) => {
   const workspace = data.Item as Workspace | undefined;
 
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
 
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   return {
     statusCode: 200,
+    headers: CORS_HEADERS,
     body: JSON.stringify(workspace),
   };
 };
@@ -91,7 +94,7 @@ export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
-    return { statusCode: 400, body: 'Missing id' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing id' };
   }
 
   const existing = await db
@@ -100,11 +103,11 @@ export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
   const workspace = existing.Item as Workspace | undefined;
 
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
 
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   const updates: Partial<Workspace> = event.body ? JSON.parse(event.body) : {};
@@ -146,6 +149,7 @@ export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 200,
+    headers: CORS_HEADERS,
     body: JSON.stringify(updated.Attributes),
   };
 };
@@ -157,7 +161,7 @@ export const deleteWorkspace: APIGatewayProxyHandler = async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
-    return { statusCode: 400, body: 'Missing id' };
+    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing id' };
   }
 
   const res = await db
@@ -166,11 +170,11 @@ export const deleteWorkspace: APIGatewayProxyHandler = async (event) => {
   const workspace = res.Item as Workspace | undefined;
 
   if (!workspace) {
-    return { statusCode: 404, body: 'Workspace not found' };
+    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
   }
 
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, body: 'Forbidden' };
+    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
   }
 
   await db
@@ -179,6 +183,7 @@ export const deleteWorkspace: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 204,
+    headers: CORS_HEADERS,
     body: '',
   };
 };
@@ -198,7 +203,7 @@ export const listWorkspaces: APIGatewayProxyHandler = async (event) => {
   const ids = Array.from(new Set([...owned, ...contrib]));
 
   if (ids.length === 0) {
-    return { statusCode: 200, body: '[]' };
+    return { statusCode: 200, headers: CORS_HEADERS, body: '[]' };
   }
 
   const res = await db
@@ -214,6 +219,7 @@ export const listWorkspaces: APIGatewayProxyHandler = async (event) => {
 
   return {
     statusCode: 200,
+    headers: CORS_HEADERS,
     body: JSON.stringify(workspaces),
   };
 };
