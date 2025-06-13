@@ -313,6 +313,11 @@ data "archive_file" "backend" {
   output_path = "${path.module}/backend.zip"
 }
 
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = "/aws/lambda/${aws_lambda_function.backend.function_name}"
+  retention_in_days = 14
+}
+
 resource "aws_lambda_function" "backend" {
   function_name = "sticky-notes-backend"
   filename         = data.archive_file.backend.output_path
@@ -327,6 +332,8 @@ resource "aws_lambda_function" "backend" {
       WS_ENDPOINT = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
     }
   }
+
+  depends_on = [aws_cloudwatch_log_group.lambda]
 }
 
 # API Gateway REST API
