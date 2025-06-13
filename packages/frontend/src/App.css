@@ -94,6 +94,12 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.note.interacting,
+.note.interacting:hover {
+  transform: rotate(var(--rotation, 0deg));
+  transition: none;
+}
+
 .note.archived {
   opacity: 0.6;
 }
