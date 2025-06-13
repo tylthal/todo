@@ -16,14 +16,6 @@ export interface WorkspaceInfo {
 export interface AccountControlsProps {
   /** Callback fired when the "Add Note" button is pressed */
   onAddNote: () => void;
-  /** Whether archived notes are currently visible */
-  showArchived: boolean;
-  /** Toggle the archived filter */
-  onToggleShowArchived: () => void;
-  /** Whether snap to edges is enabled */
-  snapToEdges: boolean;
-  /** Toggle snapping behavior */
-  onToggleSnap: () => void;
   /** List of available workspaces for the workspace selector */
   workspaces: WorkspaceInfo[];
   /** Id of the workspace currently being displayed */
@@ -40,10 +32,6 @@ export interface AccountControlsProps {
 // Renders account actions and the workspace selector shown at the top of the UI.
 export const AccountControls: React.FC<AccountControlsProps> = ({
   onAddNote,
-  showArchived,
-  onToggleShowArchived,
-  snapToEdges,
-  onToggleSnap,
   workspaces,
   currentWorkspaceId,
   onCreateWorkspace,
@@ -122,12 +110,6 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
             </button>
             {menuOpen && (
               <div className="user-dropdown">
-                <button onClick={onToggleShowArchived}>
-                  {showArchived ? 'Hide Archived' : 'Show Archived'}
-                </button>
-                <button onClick={onToggleSnap}>
-                  {snapToEdges ? 'Disable Snap' : 'Enable Snap'}
-                </button>
                 {currentWorkspaceId !== 1 && (
                   <button
                     onClick={async () => {
