@@ -2,6 +2,6 @@
 // would contain utilities used by both the frontend and backend packages.
 export const hello = () => 'Hello from shared library';
 
-export * from './models/User';
-export * from './models/Shape';
-export * from './models/Note';
+export * from './models/User.js';
+export * from './models/Shape.js';
+export * from './models/Note.js';
