@@ -151,7 +151,6 @@ const AppContent: React.FC = () => {
   return (
     <div className="app">
         <AccountControls
-          onAddNote={addNote}
           workspaces={workspaces.map(w => ({ id: w.id, name: w.name }))}
           currentWorkspaceId={currentWorkspaceId}
           onCreateWorkspace={createWorkspace}
@@ -160,6 +159,7 @@ const AppContent: React.FC = () => {
           onDeleteWorkspace={deleteWorkspace}
         />
         <ShapeToolbar
+          onAddNote={addNote}
           selectedNote={selectedNote}
           onUpdateNote={updateNote}
           onSetPinned={setNotePinned}
