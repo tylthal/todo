@@ -63,6 +63,10 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const MAX_FONT_SIZE = 1;
+  const MIN_FONT_SIZE = 0.5;
+  const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
 
   useEffect(() => {
     if (editing && textareaRef.current) {
@@ -72,6 +76,20 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       el.setSelectionRange(len, len);
     }
   }, [editing]);
+
+  // Adjust text size to fit within the note whenever content or size changes
+  useEffect(() => {
+    const contentEl = contentRef.current;
+    if (!contentEl) return;
+
+    let size = MAX_FONT_SIZE;
+    contentEl.style.fontSize = `${size}rem`;
+    while (size > MIN_FONT_SIZE && contentEl.scrollHeight > contentEl.clientHeight) {
+      size = Math.max(MIN_FONT_SIZE, size - 0.05);
+      contentEl.style.fontSize = `${size}rem`;
+    }
+    setFontSize(size);
+  }, [note.width, note.height, note.content]);
 
   // Convert screen coordinates to board coordinates taking zoom/offset into
   // account.
@@ -174,6 +192,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         <textarea
           ref={textareaRef}
           className="note-text"
+          style={{ fontSize: `${fontSize}rem` }}
           value={note.content}
           onChange={e => handleChange(e.target.value)}
           onBlur={() => setEditing(false)}
@@ -181,7 +200,13 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         />
       ) : (
         // Static display of note content
-        <div className={`note-content${note.content ? '' : ' placeholder'}`}>{note.content || 'Empty Note'}</div>
+        <div
+          ref={contentRef}
+          className={`note-content${note.content ? '' : ' placeholder'}`}
+          style={{ fontSize: `${fontSize}rem` }}
+        >
+          {note.content || 'Empty Note'}
+        </div>
       )}
       {(note.locked || note.pinned) && (
         <div className="note-indicators">
