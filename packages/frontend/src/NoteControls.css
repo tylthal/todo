@@ -85,6 +85,7 @@
   top: calc(100% + 4px / var(--zoom));
   right: calc(-4px / var(--zoom));
   display: flex;
+  flex-direction: column;
   gap: calc(4px / var(--zoom));
   background: rgba(255, 255, 255, 0.9);
   padding: calc(4px / var(--zoom));
