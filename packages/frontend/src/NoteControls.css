@@ -171,3 +171,10 @@
 .resize-handle:hover {
   opacity: 1;
 }
+
+/* Stack menu items vertically on very small screens */
+@media (max-width: 480px) {
+  .note-menu {
+    flex-direction: column;
+  }
+}
