@@ -113,6 +113,7 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
                 <button onClick={onToggleShowArchived}>
                   {showArchived ? 'Hide Archived' : 'Show Archived'}
                 </button>
+                <hr className="menu-divider" />
                 <button
                   onClick={() => {
                     logout();
