@@ -5,7 +5,11 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": "./src",
+    "paths": {
+      "@sticky-notes/shared": ["../../shared/src"]
+    }
   },
   "include": ["src"]
 }
