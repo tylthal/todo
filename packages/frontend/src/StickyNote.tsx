@@ -88,6 +88,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
   } | null>(null);
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
+  const [interacting, setInteracting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const MAX_FONT_SIZE = 1;
@@ -199,6 +200,9 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     } else {
       modeRef.current = 'drag';
     }
+    if (modeRef.current === 'drag' || modeRef.current === 'resize' || modeRef.current === 'rotate') {
+      setInteracting(true);
+    }
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -247,6 +251,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
 
   const pointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     modeRef.current = null;
+    setInteracting(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     if (e.pointerType === 'touch') {
       touchesRef.current.delete(e.pointerId);
@@ -260,6 +265,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     if (note.locked) return;
     modeRef.current = null;
+    setInteracting(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     if (e.pointerType === 'touch') {
       touchesRef.current.delete(e.pointerId);
@@ -281,7 +287,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     <>
     <div
       data-note-id={note.id}
-      className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}${note.locked ? ' locked' : ''}`}
+      className={`note${note.archived ? ' archived' : ''}${selected ? ' selected' : ''}${editing ? ' editing' : ''}${note.locked ? ' locked' : ''}${interacting ? ' interacting' : ''}`}
       style={{
         left: note.x,
         top: note.y,
