@@ -3,6 +3,8 @@ import type { Note } from '@sticky-notes/shared';
 import { ColorPalette } from './ColorPalette';
 import './NoteControls.css';
 import './App.css';
+import { useDialog } from './DialogService';
+import ConfirmDialog from './ConfirmDialog';
 
 export interface ShapeToolbarProps {
   onAddNote: () => void;
@@ -31,6 +33,7 @@ export const ShapeToolbar: React.FC<ShapeToolbarProps> = ({
   snapToEdges,
   onToggleSnap,
 }) => {
+  const dialog = useDialog();
   return (
     <div className="toolbar" style={{ '--zoom': 1 } as React.CSSProperties}>
       <button onClick={onAddNote} title="Add Note">
@@ -61,7 +64,24 @@ export const ShapeToolbar: React.FC<ShapeToolbarProps> = ({
           >
             <i className={`fa-solid ${selectedNote.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
           </button>
-          <button onClick={() => onDelete(selectedNote.id)} title="Delete">
+          <button
+            onClick={async () => {
+              try {
+                await dialog.open<void>((close) => (
+                  <ConfirmDialog
+                    message="Delete this note?"
+                    confirmLabel="Delete"
+                    onConfirm={() => close.resolve()}
+                    onCancel={close.reject}
+                  />
+                ));
+                onDelete(selectedNote.id);
+              } catch {
+                /* cancelled */
+              }
+            }}
+            title="Delete"
+          >
             <i className="fa-solid fa-trash" />
           </button>
           <div className="toolbar-divider" />
