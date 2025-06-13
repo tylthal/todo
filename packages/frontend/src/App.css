@@ -434,20 +434,21 @@
 /* Responsive tweaks for narrow screens */
 @media (max-width: 600px) {
   .account {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .workspace-controls {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
 
   .account-actions {
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
   }
 
   .account button,
