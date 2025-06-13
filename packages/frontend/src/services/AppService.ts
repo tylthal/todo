@@ -22,6 +22,7 @@ export interface CanvasState {
   offset: { x: number; y: number };
   zoom: number;
   zCounter: number; // used to maintain z-order of notes
+  snapToEdges: boolean;
 }
 
 /** Workspace groups a canvas and its notes */
@@ -55,7 +56,7 @@ export class AppService extends EventEmitter {
       id: 1,
       name: 'Default',
       notes: [],
-      canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0 },
+      canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
     };
 
     this.state = {
@@ -107,7 +108,7 @@ export class AppService extends EventEmitter {
       id,
       name: name || `Workspace ${this.state.workspaces.length + 1}`,
       notes: [],
-      canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0 },
+      canvas: { offset: { x: 0, y: 0 }, zoom: 1, zCounter: 0, snapToEdges: false },
     };
     this.state.workspaces.push(ws);
     this.state.currentWorkspaceId = id;
@@ -252,6 +253,13 @@ export class AppService extends EventEmitter {
   setOffset(pos: { x: number; y: number }): void {
     const ws = this.currentWorkspace;
     ws.canvas.offset = pos;
+    this.emitChange();
+  }
+
+  /** Enable or disable snapping notes to edges */
+  setSnapToEdges(enabled: boolean): void {
+    const ws = this.currentWorkspace;
+    ws.canvas.snapToEdges = enabled;
     this.emitChange();
   }
 

@@ -27,6 +27,7 @@ const AppContent: React.FC = () => {
 
   const currentWsIndex = workspaces.findIndex(w => w.id === currentWorkspaceId);
   const workspace = workspaces[currentWsIndex];
+  const snapToEdges = workspace.canvas.snapToEdges;
 
   const addNote = () => {
     appService.addNote();
@@ -70,6 +71,10 @@ const AppContent: React.FC = () => {
 
   const toggleShowArchived = () => {
     setShowArchived(prev => !prev);
+  };
+
+  const toggleSnapToEdges = () => {
+    appService.setSnapToEdges(!snapToEdges);
   };
 
   const setOffset = (pos: { x: number; y: number }) => {
@@ -146,6 +151,8 @@ const AppContent: React.FC = () => {
           onAddNote={addNote}
           showArchived={showArchived}
           onToggleShowArchived={toggleShowArchived}
+          snapToEdges={snapToEdges}
+          onToggleSnap={toggleSnapToEdges}
           workspaces={workspaces.map(w => ({ id: w.id, name: w.name }))}
           currentWorkspaceId={currentWorkspaceId}
           onCreateWorkspace={createWorkspace}
@@ -166,7 +173,8 @@ const AppContent: React.FC = () => {
           setOffset={setOffset}
           zoom={workspace.canvas.zoom}
           setZoom={setZoom}
-        />
+          snapToEdges={snapToEdges}
+          />
       </div>
   );
 };

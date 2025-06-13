@@ -20,6 +20,10 @@ export interface AccountControlsProps {
   showArchived: boolean;
   /** Toggle the archived filter */
   onToggleShowArchived: () => void;
+  /** Whether snap to edges is enabled */
+  snapToEdges: boolean;
+  /** Toggle snapping behavior */
+  onToggleSnap: () => void;
   /** List of available workspaces for the workspace selector */
   workspaces: WorkspaceInfo[];
   /** Id of the workspace currently being displayed */
@@ -38,6 +42,8 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
   onAddNote,
   showArchived,
   onToggleShowArchived,
+  snapToEdges,
+  onToggleSnap,
   workspaces,
   currentWorkspaceId,
   onCreateWorkspace,
@@ -118,6 +124,9 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
               <div className="user-dropdown">
                 <button onClick={onToggleShowArchived}>
                   {showArchived ? 'Hide Archived' : 'Show Archived'}
+                </button>
+                <button onClick={onToggleSnap}>
+                  {snapToEdges ? 'Disable Snap' : 'Enable Snap'}
                 </button>
                 {currentWorkspaceId !== 1 && (
                   <button
