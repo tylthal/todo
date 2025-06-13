@@ -730,10 +730,65 @@ resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.main.id
 }
 
+resource "aws_cloudwatch_log_group" "api_gateway" {
+  name              = "/aws/api-gateway/${aws_api_gateway_rest_api.main.name}"
+  retention_in_days = 14
+}
+
+data "aws_iam_policy_document" "api_gw_logs_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "api_gw_logs" {
+  name               = "sticky-notes-apigw-logs"
+  assume_role_policy = data.aws_iam_policy_document.api_gw_logs_assume.json
+}
+
+resource "aws_iam_role_policy_attachment" "api_gw_logs" {
+  role       = aws_iam_role.api_gw_logs.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+resource "aws_api_gateway_account" "main" {
+  cloudwatch_role_arn = aws_iam_role.api_gw_logs.arn
+}
+
 resource "aws_api_gateway_stage" "main" {
   stage_name    = var.api_stage
   rest_api_id   = aws_api_gateway_rest_api.main.id
   deployment_id = aws_api_gateway_deployment.main.id
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      caller         = "$context.identity.caller"
+      user           = "$context.identity.user"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
+  }
+
+  method_settings {
+    logging_level      = "INFO"
+    data_trace_enabled = true
+    metrics_enabled    = true
+    http_method        = "*"
+    resource_path      = "/*"
+  }
+
+  depends_on = [aws_api_gateway_account.main]
 }
 
 
