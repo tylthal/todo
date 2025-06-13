@@ -57,9 +57,26 @@ export interface StickyNoteProps {
   snapToEdges: boolean;
   /** DOM element to render controls overlay into */
   overlayContainer?: HTMLElement | null;
+  /** Callback to update snap guide lines */
+  onSnapLinesChange?: (lines: { x: number | null; y: number | null }) => void;
 }
 
-export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchive, selected, onSelect, onSetPinned, onSetLocked, onDelete, offset, zoom, allNotes, snapToEdges, overlayContainer }) => {
+export const StickyNote: React.FC<StickyNoteProps> = ({
+  note,
+  onUpdate,
+  onArchive,
+  selected,
+  onSelect,
+  onSetPinned,
+  onSetLocked,
+  onDelete,
+  offset,
+  zoom,
+  allNotes,
+  snapToEdges,
+  overlayContainer,
+  onSnapLinesChange,
+}) => {
   // Track the current interaction mode (dragging, resizing or pinching) and store
   // temporary data needed to calculate positions during the gesture.
   const modeRef = useRef<'drag' | 'resize' | 'pinch' | null>(null);
@@ -216,6 +233,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       // Move the note according to the pointer, keeping the initial offset.
       let newX = pos.x - offsetRef.current.x;
       let newY = pos.y - offsetRef.current.y;
+      let lineX: number | null = null;
+      let lineY: number | null = null;
       if (snapToEdges) {
         const threshold = SNAP_THRESHOLD / zoom;
         const others = allNotes.filter(n => n.id !== note.id);
@@ -225,20 +244,29 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         const snappedLeft = snap(newX, xEdges, threshold);
         const snappedRight = snap(newX + note.width, xEdges, threshold);
         if (Math.abs(snappedRight - (newX + note.width)) < Math.abs(snappedLeft - newX)) {
+          if (snappedRight !== newX + note.width) lineX = snappedRight;
           newX += snappedRight - (newX + note.width);
         } else if (snappedLeft !== newX) {
+          lineX = snappedLeft;
           newX = snappedLeft;
         }
 
         const snappedTop = snap(newY, yEdges, threshold);
         const snappedBottom = snap(newY + note.height, yEdges, threshold);
         if (Math.abs(snappedBottom - (newY + note.height)) < Math.abs(snappedTop - newY)) {
+          if (snappedBottom !== newY + note.height) lineY = snappedBottom;
           newY += snappedBottom - (newY + note.height);
         } else if (snappedTop !== newY) {
+          lineY = snappedTop;
           newY = snappedTop;
         }
       }
       onUpdate(note.id, { x: newX, y: newY });
+      if (snapToEdges && onSnapLinesChange) {
+        onSnapLinesChange({ x: lineX, y: lineY });
+      } else if (onSnapLinesChange) {
+        onSnapLinesChange({ x: null, y: null });
+      }
     }
     if (modeRef.current === 'resize') {
       // Resize the note based on pointer delta from the start of the gesture.
@@ -248,6 +276,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       let newY = note.y;
       let newWidth = Math.max(80, resizeRef.current.startWidth + dx);
       let newHeight = Math.max(60, resizeRef.current.startHeight + dy);
+      let lineX: number | null = null;
+      let lineY: number | null = null;
       if (snapToEdges) {
         const threshold = SNAP_THRESHOLD / zoom;
         const others = allNotes.filter(n => n.id !== note.id);
@@ -258,10 +288,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         const snappedRight = snap(newX + newWidth, xEdges, threshold);
         if (snappedLeft !== newX) {
           const shift = newX - snappedLeft;
+          lineX = snappedLeft;
           newX = snappedLeft;
           newWidth = Math.max(80, newWidth + shift);
         }
         if (snappedRight !== newX + newWidth) {
+          lineX = snappedRight;
           newWidth = Math.max(80, snappedRight - newX);
         }
 
@@ -269,14 +301,21 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         const snappedBottom = snap(newY + newHeight, yEdges, threshold);
         if (snappedTop !== newY) {
           const shift = newY - snappedTop;
+          lineY = snappedTop;
           newY = snappedTop;
           newHeight = Math.max(60, newHeight + shift);
         }
         if (snappedBottom !== newY + newHeight) {
+          lineY = snappedBottom;
           newHeight = Math.max(60, snappedBottom - newY);
         }
       }
       onUpdate(note.id, { x: newX, y: newY, width: newWidth, height: newHeight });
+      if (snapToEdges && onSnapLinesChange) {
+        onSnapLinesChange({ x: lineX, y: lineY });
+      } else if (onSnapLinesChange) {
+        onSnapLinesChange({ x: null, y: null });
+      }
     }
   };
 
@@ -290,6 +329,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         pinchRef.current = null;
       }
     }
+    onSnapLinesChange?.({ x: null, y: null });
   };
 
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -303,6 +343,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         pinchRef.current = null;
       }
     }
+    onSnapLinesChange?.({ x: null, y: null });
   };
 
   const handleChange = (value: string) => {

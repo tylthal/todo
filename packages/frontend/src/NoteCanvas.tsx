@@ -80,6 +80,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const offsetRef = useRef(offset);
   // Container used to render note controls above all notes
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [snapLines, setSnapLines] = useState<{ x: number | null; y: number | null }>({ x: null, y: null });
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] = useState<
     { x: number; y: number; noteId: number | null }
@@ -414,6 +415,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
             allNotes={notes}
             snapToEdges={snapToEdges}
             overlayContainer={overlayRef.current}
+            onSnapLinesChange={setSnapLines}
           />
         ))}
       </div>
@@ -424,7 +426,20 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
           '--zoom': zoom,
         } as React.CSSProperties}
-      />
+      >
+        {snapLines.x != null && (
+          <div
+            className="snap-line vertical"
+            style={{ left: snapLines.x }}
+          />
+        )}
+        {snapLines.y != null && (
+          <div
+            className="snap-line horizontal"
+            style={{ top: snapLines.y }}
+          />
+        )}
+      </div>
       {contextMenu && (
         <div
           ref={menuRef}
