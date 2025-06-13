@@ -72,6 +72,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
   const offsetRef = useRef(offset);
   // Container used to render note controls above all notes
   const overlayRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [contextMenu, setContextMenu] = useState<
     { x: number; y: number; noteId: number | null }
     | null
@@ -90,9 +91,13 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
 
   useEffect(() => {
     if (!contextMenu) return;
-    const close = () => setContextMenu(null);
-    document.addEventListener('pointerdown', close);
-    return () => document.removeEventListener('pointerdown', close);
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button === 0 && !menuRef.current?.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [contextMenu]);
 
   /**
@@ -400,6 +405,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
       />
       {contextMenu && (
         <div
+          ref={menuRef}
           className="canvas-context-menu"
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onPointerDown={e => e.stopPropagation()}
