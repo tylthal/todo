@@ -50,3 +50,14 @@ variable "cognito_domain_prefix" {
   description = "Unique prefix for Cognito hosted UI domain"
   type        = string
 }
+
+variable "table_name" {
+  description = "DynamoDB table name for backend data"
+  type        = string
+}
+
+variable "api_stage" {
+  description = "Deployment stage name for API Gateway"
+  type        = string
+  default     = "prod"
+}
