@@ -83,6 +83,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     startY: number;
     centerX: number;
     centerY: number;
+    startAngle: number;
+    startRotation: number;
   } | null>(null);
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
@@ -170,6 +172,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
       if (touchesRef.current.size === 2) {
         const [a, b] = Array.from(touchesRef.current.values());
         const start = Math.hypot(a.x - b.x, a.y - b.y);
+        const angle = Math.atan2(b.y - a.y, b.x - a.x);
         const midX = (a.x + b.x) / 2;
         const midY = (a.y + b.y) / 2;
         const center = toBoard(midX, midY);
@@ -182,6 +185,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
           startY: note.y,
           centerX: center.x,
           centerY: center.y,
+          startAngle: angle,
+          startRotation: note.rotation,
         };
         return;
       }
@@ -204,6 +209,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     if (modeRef.current === 'pinch' && pinchRef.current && touchesRef.current.size === 2) {
       const [a, b] = Array.from(touchesRef.current.values());
       const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
       const centerScreenX = (a.x + b.x) / 2;
       const centerScreenY = (a.y + b.y) / 2;
       const center = toBoard(centerScreenX, centerScreenY);
@@ -214,7 +220,15 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         center.x + (pinchRef.current.startX - pinchRef.current.centerX) * ratio;
       const newY =
         center.y + (pinchRef.current.startY - pinchRef.current.centerY) * ratio;
-      onUpdate(note.id, { width: newWidth, height: newHeight, x: newX, y: newY });
+      const delta = angle - pinchRef.current.startAngle;
+      const newRotation = pinchRef.current.startRotation + (delta * 180) / Math.PI;
+      onUpdate(note.id, {
+        width: newWidth,
+        height: newHeight,
+        x: newX,
+        y: newY,
+        rotation: newRotation,
+      });
       pinchRef.current = {
         start: dist,
         startWidth: newWidth,
@@ -223,6 +237,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         startY: newY,
         centerX: center.x,
         centerY: center.y,
+        startAngle: angle,
+        startRotation: newRotation,
       };
       return;
     }
