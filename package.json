@@ -10,6 +10,7 @@
     "dev:backend": "npm start --workspace packages/backend",
     "build": "npm run build --workspaces",
     "deploy:frontend": "node ./scripts/deploy_frontend.js",
+    "deploy:backend": "node ./scripts/deploy_backend.js",
     "test:backend": "npm test --workspace packages/backend",
     "test": "npm run test:backend",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
