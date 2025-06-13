@@ -220,6 +220,12 @@
   min-width: 120px;
 }
 
+.user-dropdown .menu-divider {
+  border: none;
+  border-top: 1px solid #cbd5e1;
+  margin: 4px 0;
+}
+
 .user-dropdown button {
   background: none;
   border: none;
