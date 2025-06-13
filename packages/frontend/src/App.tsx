@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import { useDialog } from './DialogService';
 import PromptDialog from './PromptDialog';
+import ConfirmDialog from './ConfirmDialog';
 import { UserProvider, UserContext } from './UserContext';
 import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
@@ -79,9 +80,30 @@ const AppContent: React.FC = () => {
     appService.setZoom(z);
   };
 
-  const createWorkspace = () => {
-    appService.createWorkspace();
-    setSelectedId(null);
+  const createWorkspace = async () => {
+    try {
+      const name = await dialog.open<string>((close) => (
+        <PromptDialog
+          title="Workspace name"
+          onConfirm={(val) => close.resolve(val)}
+          onCancel={close.reject}
+        />
+      ));
+      if (!name || name.trim() === '') return;
+      await dialog.open<void>((close) => (
+        <ConfirmDialog
+          title="Create Workspace"
+          message={`Create workspace "${name.trim()}"?`}
+          confirmLabel="Create"
+          onConfirm={() => close.resolve()}
+          onCancel={close.reject}
+        />
+      ));
+      appService.createWorkspace(name.trim());
+      setSelectedId(null);
+    } catch {
+      /* cancelled */
+    }
   };
 
   const deleteWorkspace = (id: number) => {
