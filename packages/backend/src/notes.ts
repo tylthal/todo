@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { Note, Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
+import { broadcastWorkspaceEvent } from './websocket';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -52,6 +53,11 @@ export const createNote: APIGatewayProxyHandler = async (event) => {
       },
     })
     .promise();
+
+  await broadcastWorkspaceEvent(workspaceId, {
+    type: 'note.created',
+    note,
+  });
 
   return {
     statusCode: 201,
@@ -119,6 +125,11 @@ export const updateNote: APIGatewayProxyHandler = async (event) => {
       ReturnValues: 'ALL_NEW',
     })
     .promise();
+
+  await broadcastWorkspaceEvent(workspaceId, {
+    type: 'note.updated',
+    note: updated.Attributes,
+  });
 
   return {
     statusCode: 200,

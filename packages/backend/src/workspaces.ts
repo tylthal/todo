@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
+import { broadcastWorkspaceEvent } from './websocket';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -137,6 +138,11 @@ export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
       ReturnValues: 'ALL_NEW',
     })
     .promise();
+
+  await broadcastWorkspaceEvent(id, {
+    type: 'workspace.updated',
+    workspace: updated.Attributes,
+  });
 
   return {
     statusCode: 200,

@@ -254,7 +254,8 @@ resource "aws_lambda_function" "backend" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.main.name
+      TABLE_NAME  = aws_dynamodb_table.main.name
+      WS_ENDPOINT = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
     }
   }
 }
@@ -430,6 +431,58 @@ resource "aws_lambda_permission" "api" {
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
 }
 
+# WebSocket API for realtime updates
+resource "aws_apigatewayv2_api" "ws" {
+  name                       = "sticky-notes-ws"
+  protocol_type              = "WEBSOCKET"
+  route_selection_expression = "$request.body.action"
+}
+
+resource "aws_apigatewayv2_integration" "ws_lambda" {
+  api_id           = aws_apigatewayv2_api.ws.id
+  integration_type = "AWS_PROXY"
+  integration_uri  = aws_lambda_function.backend.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "ws_connect" {
+  api_id    = aws_apigatewayv2_api.ws.id
+  route_key = "$connect"
+  target    = "integrations/${aws_apigatewayv2_integration.ws_lambda.id}"
+}
+
+resource "aws_apigatewayv2_route" "ws_disconnect" {
+  api_id    = aws_apigatewayv2_api.ws.id
+  route_key = "$disconnect"
+  target    = "integrations/${aws_apigatewayv2_integration.ws_lambda.id}"
+}
+
+resource "aws_apigatewayv2_route" "ws_subscribe" {
+  api_id    = aws_apigatewayv2_api.ws.id
+  route_key = "subscribe"
+  target    = "integrations/${aws_apigatewayv2_integration.ws_lambda.id}"
+}
+
+resource "aws_apigatewayv2_route" "ws_unsubscribe" {
+  api_id    = aws_apigatewayv2_api.ws.id
+  route_key = "unsubscribe"
+  target    = "integrations/${aws_apigatewayv2_integration.ws_lambda.id}"
+}
+
+resource "aws_apigatewayv2_stage" "ws" {
+  api_id      = aws_apigatewayv2_api.ws.id
+  name        = var.api_stage
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "ws" {
+  statement_id  = "AllowWSInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.backend.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.ws.execution_arn}/*"
+}
+
 resource "aws_api_gateway_deployment" "main" {
   depends_on = [
     aws_api_gateway_integration.workspaces_post,
@@ -472,4 +525,8 @@ output "cognito_hosted_ui_domain" {
 
 output "api_invoke_url" {
   value = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.api_stage}"
+}
+
+output "ws_endpoint" {
+  value = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
 }
