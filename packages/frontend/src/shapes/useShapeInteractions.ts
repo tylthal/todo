@@ -92,19 +92,29 @@ export class ShapeInteractions<T extends Shape> {
       const yEdges = others.flatMap(b => [b.top, b.bottom]);
       const snappedLeft = snap(newX, xEdges, threshold);
       const snappedRight = snap(newX + shape.width, xEdges, threshold);
-      if (Math.abs(snappedRight - (newX + shape.width)) < Math.abs(snappedLeft - newX)) {
-        if (snappedRight !== newX + shape.width) lineX = snappedRight;
+      const dLeft = snappedLeft !== newX ? Math.abs(snappedLeft - newX) : Infinity;
+      const dRight =
+        snappedRight !== newX + shape.width
+          ? Math.abs(snappedRight - (newX + shape.width))
+          : Infinity;
+      if (dRight < dLeft) {
+        lineX = snappedRight;
         newX += snappedRight - (newX + shape.width);
-      } else if (snappedLeft !== newX) {
+      } else if (dLeft !== Infinity) {
         lineX = snappedLeft;
         newX = snappedLeft;
       }
       const snappedTop = snap(newY, yEdges, threshold);
       const snappedBottom = snap(newY + shape.height, yEdges, threshold);
-      if (Math.abs(snappedBottom - (newY + shape.height)) < Math.abs(snappedTop - newY)) {
-        if (snappedBottom !== newY + shape.height) lineY = snappedBottom;
+      const dTop = snappedTop !== newY ? Math.abs(snappedTop - newY) : Infinity;
+      const dBottom =
+        snappedBottom !== newY + shape.height
+          ? Math.abs(snappedBottom - (newY + shape.height))
+          : Infinity;
+      if (dBottom < dTop) {
+        lineY = snappedBottom;
         newY += snappedBottom - (newY + shape.height);
-      } else if (snappedTop !== newY) {
+      } else if (dTop !== Infinity) {
         lineY = snappedTop;
         newY = snappedTop;
       }
@@ -132,25 +142,33 @@ export class ShapeInteractions<T extends Shape> {
       const yEdges = others.flatMap(b => [b.top, b.bottom]);
       const snappedLeft = snap(newX, xEdges, threshold);
       const snappedRight = snap(newX + newWidth, xEdges, threshold);
-      if (snappedLeft !== newX) {
+      const dLeft = snappedLeft !== newX ? Math.abs(snappedLeft - newX) : Infinity;
+      const dRight =
+        snappedRight !== newX + newWidth
+          ? Math.abs(snappedRight - (newX + newWidth))
+          : Infinity;
+      if (dLeft < dRight && dLeft !== Infinity) {
         const shift = newX - snappedLeft;
         lineX = snappedLeft;
         newX = snappedLeft;
         newWidth = Math.max(80, newWidth + shift);
-      }
-      if (snappedRight !== newX + newWidth) {
+      } else if (dRight !== Infinity) {
         lineX = snappedRight;
         newWidth = Math.max(80, snappedRight - newX);
       }
       const snappedTop = snap(newY, yEdges, threshold);
       const snappedBottom = snap(newY + newHeight, yEdges, threshold);
-      if (snappedTop !== newY) {
+      const dTop = snappedTop !== newY ? Math.abs(snappedTop - newY) : Infinity;
+      const dBottom =
+        snappedBottom !== newY + newHeight
+          ? Math.abs(snappedBottom - (newY + newHeight))
+          : Infinity;
+      if (dTop < dBottom && dTop !== Infinity) {
         const shift = newY - snappedTop;
         lineY = snappedTop;
         newY = snappedTop;
         newHeight = Math.max(60, newHeight + shift);
-      }
-      if (snappedBottom !== newY + newHeight) {
+      } else if (dBottom !== Infinity) {
         lineY = snappedBottom;
         newHeight = Math.max(60, snappedBottom - newY);
       }
