@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Note } from './services/AppService';
+import type { Point } from './zoomUtils';
 import { NoteControls } from './NoteControls';
 
 // Interactive sticky note component that can be dragged, resized and edited.
@@ -60,6 +61,14 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     startWidth: 0,
     startHeight: 0,
   });
+  // Track active touch points for pinch gestures
+  const touchesRef = useRef(new Map<number, Point>());
+  // Information about an active pinch gesture
+  const pinchRef = useRef<{
+    start: number;
+    startWidth: number;
+    startHeight: number;
+  } | null>(null);
   // Whether the note text is currently being edited
   const [editing, setEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -115,6 +124,24 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     if (editing || note.locked) return;
     const target = e.target as HTMLElement;
     const pos = toBoard(e.clientX, e.clientY);
+
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    if (e.pointerType === 'touch') {
+      touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touchesRef.current.size === 2) {
+        const [a, b] = Array.from(touchesRef.current.values());
+        const start = Math.hypot(a.x - b.x, a.y - b.y);
+        modeRef.current = 'pinch';
+        pinchRef.current = {
+          start,
+          startWidth: note.width,
+          startHeight: note.height,
+        };
+        return;
+      }
+    }
+
     if (target.closest('.resize-handle')) {
       // Start resizing from the current pointer position
       modeRef.current = 'resize';
@@ -129,12 +156,24 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       modeRef.current = 'drag';
       offsetRef.current = { x: pos.x - note.x, y: pos.y - note.y };
     }
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (editing || note.locked) return;
     const pos = toBoard(e.clientX, e.clientY);
+    if (e.pointerType === 'touch') {
+      touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+    if (modeRef.current === 'pinch' && pinchRef.current && touchesRef.current.size === 2) {
+      const [a, b] = Array.from(touchesRef.current.values());
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const ratio = dist / pinchRef.current.start;
+      const newWidth = Math.max(80, pinchRef.current.startWidth * ratio);
+      const newHeight = Math.max(60, pinchRef.current.startHeight * ratio);
+      onUpdate(note.id, { width: newWidth, height: newHeight });
+      pinchRef.current = { start: dist, startWidth: newWidth, startHeight: newHeight };
+      return;
+    }
     if (modeRef.current === 'drag') {
       // Move the note according to the pointer, keeping the initial offset.
       onUpdate(note.id, {
@@ -156,6 +195,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     // Gesture finished
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    if (e.pointerType === 'touch') {
+      touchesRef.current.delete(e.pointerId);
+      if (touchesRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+    }
   };
 
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -163,6 +208,12 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
     // Gesture aborted
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    if (e.pointerType === 'touch') {
+      touchesRef.current.delete(e.pointerId);
+      if (touchesRef.current.size < 2) {
+        pinchRef.current = null;
+      }
+    }
   };
 
   const handleChange = (value: string) => {
