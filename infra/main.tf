@@ -407,6 +407,47 @@ resource "aws_api_gateway_integration" "workspaces_get" {
   uri         = local.lambda_uri
 }
 
+resource "aws_api_gateway_method" "workspaces_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "workspaces_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = aws_api_gateway_method.workspaces_options.http_method
+  type        = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "workspaces_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = aws_api_gateway_method.workspaces_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "workspaces_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = aws_api_gateway_method.workspaces_options.http_method
+  status_code = aws_api_gateway_method_response.workspaces_options.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
+  }
+}
+
 resource "aws_api_gateway_method" "workspace_id_get" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.workspace_id.id
@@ -439,6 +480,47 @@ resource "aws_api_gateway_integration" "workspace_id_patch" {
   integration_http_method = "POST"
   type        = "AWS"
   uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "workspace_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "workspace_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = aws_api_gateway_method.workspace_id_options.http_method
+  type        = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "workspace_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = aws_api_gateway_method.workspace_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "workspace_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = aws_api_gateway_method.workspace_id_options.http_method
+  status_code = aws_api_gateway_method_response.workspace_id_options.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
+  }
 }
 
 resource "aws_api_gateway_method" "notes_post" {
@@ -475,6 +557,45 @@ resource "aws_api_gateway_integration" "notes_get" {
   uri         = local.lambda_uri
 }
 
+resource "aws_api_gateway_method" "notes_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "notes_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = aws_api_gateway_method.notes_options.http_method
+  type        = "MOCK"
+  request_templates = { "application/json" = "{\"statusCode\": 200}" }
+}
+
+resource "aws_api_gateway_method_response" "notes_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = aws_api_gateway_method.notes_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "notes_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = aws_api_gateway_method.notes_options.http_method
+  status_code = aws_api_gateway_method_response.notes_options.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
+  }
+}
+
 resource "aws_api_gateway_method" "note_id_patch" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.note_id.id
@@ -490,6 +611,45 @@ resource "aws_api_gateway_integration" "note_id_patch" {
   integration_http_method = "POST"
   type        = "AWS"
   uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "note_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.note_id.id
+  http_method = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "note_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.note_id.id
+  http_method = aws_api_gateway_method.note_id_options.http_method
+  type        = "MOCK"
+  request_templates = { "application/json" = "{\"statusCode\": 200}" }
+}
+
+resource "aws_api_gateway_method_response" "note_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.note_id.id
+  http_method = aws_api_gateway_method.note_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "note_id_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.note_id.id
+  http_method = aws_api_gateway_method.note_id_options.http_method
+  status_code = aws_api_gateway_method_response.note_id_options.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
+  }
 }
 
 resource "aws_lambda_permission" "api" {
@@ -556,11 +716,15 @@ resource "aws_api_gateway_deployment" "main" {
   depends_on = [
     aws_api_gateway_integration.workspaces_post,
     aws_api_gateway_integration.workspaces_get,
+    aws_api_gateway_integration.workspaces_options,
     aws_api_gateway_integration.workspace_id_get,
     aws_api_gateway_integration.workspace_id_patch,
+    aws_api_gateway_integration.workspace_id_options,
     aws_api_gateway_integration.notes_post,
     aws_api_gateway_integration.notes_get,
-    aws_api_gateway_integration.note_id_patch
+    aws_api_gateway_integration.notes_options,
+    aws_api_gateway_integration.note_id_patch,
+    aws_api_gateway_integration.note_id_options
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id
