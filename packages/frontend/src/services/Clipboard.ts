@@ -1,12 +1,20 @@
+import { EventEmitter } from 'events';
 import { AppService, Note } from './AppService';
 
+const emitter = new EventEmitter();
+
 let clipboard: Note | null = null;
+
+function emitChange(): void {
+  emitter.emit('change', clipboard);
+}
 
 export function copyNote(service: AppService, id: number): void {
   const state = service.getState();
   const ws = state.workspaces.find(w => w.id === state.currentWorkspaceId);
   const note = ws?.notes.find(n => n.id === id);
   clipboard = note ? { ...note } : null;
+  emitChange();
 }
 
 export function pasteNote(service: AppService): number | null {
@@ -24,9 +32,23 @@ export function pasteNote(service: AppService): number | null {
     pinned: original.pinned,
     locked: original.locked,
   });
+  clearClipboard();
   return newId;
 }
 
 export function hasClipboard(): boolean {
   return clipboard != null;
+}
+
+export function clearClipboard(): void {
+  clipboard = null;
+  emitChange();
+}
+
+export function onClipboardChange(
+  listener: (note: Note | null) => void
+): () => void {
+  emitter.on('change', listener);
+  // compatibility with older versions of events library
+  return () => emitter.removeListener('change', listener);
 }

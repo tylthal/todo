@@ -3,7 +3,12 @@ import { StickyNote } from './StickyNote';
 import './App.css';
 import './ContextMenu.css';
 import { Note, appService } from './services/AppService';
-import { copyNote, pasteNote, hasClipboard } from './services/Clipboard';
+import {
+  copyNote,
+  pasteNote,
+  hasClipboard as hasClipboardFn,
+  onClipboardChange,
+} from './services/Clipboard';
 import { clampZoom, zoomAroundCenter, zoomAroundPoint, MIN_ZOOM, MAX_ZOOM } from './zoomUtils';
 
 const PINCH_SENSITIVITY = 0.5;
@@ -76,6 +81,14 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
     { x: number; y: number; noteId: number | null }
     | null
   >(null);
+  const [clipboardAvailable, setClipboardAvailable] = useState(hasClipboardFn());
+
+  useEffect(() => {
+    const unsubscribe = onClipboardChange(note => {
+      setClipboardAvailable(!!note);
+    });
+    return unsubscribe;
+  }, []);
 
   // Keep the refs in sync with the props so event handlers always use the
   // latest values.
@@ -407,7 +420,7 @@ export const NoteCanvas: React.FC<NoteCanvasProps> = ({
           {contextMenu.noteId != null && (
             <button onClick={handleCopy}>Copy</button>
           )}
-          <button onClick={handlePaste} disabled={!hasClipboard()}>
+          <button onClick={handlePaste} disabled={!clipboardAvailable}>
             Paste
           </button>
         </div>
