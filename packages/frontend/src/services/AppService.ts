@@ -131,6 +131,19 @@ export class AppService extends EventEmitter {
     }
   }
 
+  /** Delete a workspace */
+  deleteWorkspace(id: number): void {
+    if (id === 1) return; // prevent deleting default workspace
+    const index = this.state.workspaces.findIndex(w => w.id === id);
+    if (index === -1) return;
+    this.state.workspaces.splice(index, 1);
+    if (this.state.currentWorkspaceId === id) {
+      const next = this.state.workspaces[0];
+      this.state.currentWorkspaceId = next ? next.id : 1;
+    }
+    this.emitChange();
+  }
+
   // ─── Canvas / Note Actions ──────────────────────────────────────────────
 
   private get currentWorkspace(): Workspace {

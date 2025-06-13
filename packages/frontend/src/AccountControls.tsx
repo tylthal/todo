@@ -1,5 +1,7 @@
 import React, { useContext, useRef, useState, useEffect } from 'react';
 import { UserContext } from './UserContext';
+import { useDialog } from './DialogService';
+import ConfirmDialog from './ConfirmDialog';
 import './App.css';
 
 // Header area that displays workspace management controls and a simple
@@ -28,6 +30,8 @@ export interface AccountControlsProps {
   onSwitchWorkspace: (id: number) => void;
   /** Rename the current workspace */
   onRenameWorkspace: (id: number) => void;
+  /** Delete the current workspace */
+  onDeleteWorkspace: (id: number) => void;
 }
 // Renders account actions and the workspace selector shown at the top of the UI.
 export const AccountControls: React.FC<AccountControlsProps> = ({
@@ -39,11 +43,13 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
   onCreateWorkspace,
   onSwitchWorkspace,
   onRenameWorkspace,
+  onDeleteWorkspace,
 }) => {
   // Consume the simple user context so we can show login/logout buttons.
   const { user, login, logout } = useContext(UserContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const dialog = useDialog();
 
   // Close the dropdown when clicking outside or pressing Escape
   useEffect(() => {
@@ -113,6 +119,27 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
                 <button onClick={onToggleShowArchived}>
                   {showArchived ? 'Hide Archived' : 'Show Archived'}
                 </button>
+                {currentWorkspaceId !== 1 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await dialog.open<void>((close) => (
+                          <ConfirmDialog
+                            message="Delete this workspace and all notes?"
+                            onConfirm={() => close.resolve()}
+                            onCancel={close.reject}
+                          />
+                        ));
+                        onDeleteWorkspace(currentWorkspaceId);
+                      } catch {
+                        /* cancelled */
+                      }
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Delete Workspace
+                  </button>
+                )}
                 <hr className="menu-divider" />
                 <button
                   onClick={() => {

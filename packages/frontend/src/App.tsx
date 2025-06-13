@@ -84,6 +84,11 @@ const AppContent: React.FC = () => {
     setSelectedId(null);
   };
 
+  const deleteWorkspace = (id: number) => {
+    appService.deleteWorkspace(id);
+    setSelectedId(null);
+  };
+
   const renameWorkspace = async (id: number) => {
     const ws = workspaces.find(w => w.id === id);
     if (!ws || ws.id === 1) return;
@@ -124,6 +129,7 @@ const AppContent: React.FC = () => {
           onCreateWorkspace={createWorkspace}
           onSwitchWorkspace={switchWorkspace}
           onRenameWorkspace={renameWorkspace}
+          onDeleteWorkspace={deleteWorkspace}
         />
         <NoteCanvas
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
