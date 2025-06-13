@@ -221,8 +221,22 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         const others = allNotes.filter(n => n.id !== note.id);
         const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
         const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
-        newX = snap(newX, xEdges, threshold);
-        newY = snap(newY, yEdges, threshold);
+
+        const snappedLeft = snap(newX, xEdges, threshold);
+        const snappedRight = snap(newX + note.width, xEdges, threshold);
+        if (Math.abs(snappedRight - (newX + note.width)) < Math.abs(snappedLeft - newX)) {
+          newX += snappedRight - (newX + note.width);
+        } else if (snappedLeft !== newX) {
+          newX = snappedLeft;
+        }
+
+        const snappedTop = snap(newY, yEdges, threshold);
+        const snappedBottom = snap(newY + note.height, yEdges, threshold);
+        if (Math.abs(snappedBottom - (newY + note.height)) < Math.abs(snappedTop - newY)) {
+          newY += snappedBottom - (newY + note.height);
+        } else if (snappedTop !== newY) {
+          newY = snappedTop;
+        }
       }
       onUpdate(note.id, { x: newX, y: newY });
     }
@@ -230,6 +244,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
       // Resize the note based on pointer delta from the start of the gesture.
       const dx = pos.x - resizeRef.current.startX;
       const dy = pos.y - resizeRef.current.startY;
+      let newX = note.x;
+      let newY = note.y;
       let newWidth = Math.max(80, resizeRef.current.startWidth + dx);
       let newHeight = Math.max(60, resizeRef.current.startHeight + dy);
       if (snapToEdges) {
@@ -237,12 +253,30 @@ export const StickyNote: React.FC<StickyNoteProps> = ({ note, onUpdate, onArchiv
         const others = allNotes.filter(n => n.id !== note.id);
         const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
         const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
-        const snappedRight = snap(note.x + newWidth, xEdges, threshold);
-        const snappedBottom = snap(note.y + newHeight, yEdges, threshold);
-        newWidth = Math.max(80, snappedRight - note.x);
-        newHeight = Math.max(60, snappedBottom - note.y);
+
+        const snappedLeft = snap(newX, xEdges, threshold);
+        const snappedRight = snap(newX + newWidth, xEdges, threshold);
+        if (snappedLeft !== newX) {
+          const shift = newX - snappedLeft;
+          newX = snappedLeft;
+          newWidth = Math.max(80, newWidth + shift);
+        }
+        if (snappedRight !== newX + newWidth) {
+          newWidth = Math.max(80, snappedRight - newX);
+        }
+
+        const snappedTop = snap(newY, yEdges, threshold);
+        const snappedBottom = snap(newY + newHeight, yEdges, threshold);
+        if (snappedTop !== newY) {
+          const shift = newY - snappedTop;
+          newY = snappedTop;
+          newHeight = Math.max(60, newHeight + shift);
+        }
+        if (snappedBottom !== newY + newHeight) {
+          newHeight = Math.max(60, snappedBottom - newY);
+        }
       }
-      onUpdate(note.id, { width: newWidth, height: newHeight });
+      onUpdate(note.id, { x: newX, y: newY, width: newWidth, height: newHeight });
     }
   };
 
