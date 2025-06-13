@@ -1,8 +1,23 @@
 import { Auth } from '@aws-amplify/auth';
 import type { Workspace, Note } from '@sticky-notes/shared';
 
-async function authorizedFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  const session = await Auth.currentSession();
+async function authorizedFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  let session;
+  try {
+    session = await Auth.currentSession();
+  } catch (err) {
+    console.warn('Unable to retrieve current session. Redirecting to login.', err);
+    try {
+      await Auth.federatedSignIn();
+    } catch (redirectErr) {
+      console.warn('Failed to initiate federated sign in.', redirectErr);
+    }
+    throw new Error('Not authenticated');
+  }
+
   const token = session.getIdToken().getJwtToken();
   const headers = new Headers(init.headers || {});
   headers.set('Authorization', `Bearer ${token}`);
