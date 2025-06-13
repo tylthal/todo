@@ -228,7 +228,7 @@ Update the Lambda function after making backend changes with:
 npm run deploy:backend
 ```
 
-The script compiles the backend, packages the Lambda code and uploads it using the AWS CLI. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
+The script compiles the backend, packages the Lambda code using the Node [archiver](https://www.npmjs.com/package/archiver) library (so no separate `zip` tool is required) and uploads it with the AWS CLI. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
 
 For Bash or other Unix shells:
 
