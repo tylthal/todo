@@ -367,3 +367,31 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+/* Responsive tweaks for narrow screens */
+@media (max-width: 600px) {
+  .account {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .workspace-controls {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .account-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .account button,
+  .workspace-controls select,
+  .workspace-controls button {
+    margin: 0.25rem;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
