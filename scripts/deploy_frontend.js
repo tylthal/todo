@@ -13,6 +13,8 @@ if (!bucket || !distId) {
   process.exit(1);
 }
 
+run('cp packages/frontend/.env.deploy packages/frontend/.env');
+
 run('npm run build --workspace packages/frontend');
 run(`aws s3 sync packages/frontend/dist s3://${bucket} --delete --no-verify-ssl`);
 run(`aws cloudfront create-invalidation --distribution-id ${distId} --paths "/*"`);
