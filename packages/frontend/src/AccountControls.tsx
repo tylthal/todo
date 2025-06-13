@@ -14,8 +14,6 @@ export interface WorkspaceInfo {
 }
 
 export interface AccountControlsProps {
-  /** Callback fired when the "Add Note" button is pressed */
-  onAddNote: () => void;
   /** Whether archived notes are currently visible */
   showArchived: boolean;
   /** Toggle the archived filter */
@@ -39,7 +37,6 @@ export interface AccountControlsProps {
 }
 // Renders account actions and the workspace selector shown at the top of the UI.
 export const AccountControls: React.FC<AccountControlsProps> = ({
-  onAddNote,
   showArchived,
   onToggleShowArchived,
   snapToEdges,
@@ -109,8 +106,6 @@ export const AccountControls: React.FC<AccountControlsProps> = ({
         )}
       </div>
       <div className="account-actions">
-        {/* Primary actions for the current workspace */}
-        <button className="add-note" onClick={onAddNote}><i className="fa-solid fa-plus" /> Add Note</button>
         {user ? (
           <div ref={menuRef} className="user-menu">
             <button

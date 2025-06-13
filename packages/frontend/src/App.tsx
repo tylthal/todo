@@ -151,7 +151,6 @@ const AppContent: React.FC = () => {
   return (
     <div className="app">
         <AccountControls
-          onAddNote={addNote}
           showArchived={showArchived}
           onToggleShowArchived={toggleShowArchived}
           snapToEdges={snapToEdges}
@@ -164,6 +163,7 @@ const AppContent: React.FC = () => {
           onDeleteWorkspace={deleteWorkspace}
         />
         <ShapeToolbar
+          onAddNote={addNote}
           selectedNote={selectedNote}
           onUpdateNote={updateNote}
           onSetPinned={setNotePinned}

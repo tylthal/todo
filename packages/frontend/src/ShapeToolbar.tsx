@@ -5,6 +5,7 @@ import './NoteControls.css';
 import './App.css';
 
 export interface ShapeToolbarProps {
+  onAddNote: () => void;
   selectedNote: Note | null;
   onUpdateNote: (id: number, data: Partial<Note>) => void;
   onSetPinned: (id: number, pinned: boolean) => void;
@@ -18,6 +19,7 @@ export interface ShapeToolbarProps {
 }
 
 export const ShapeToolbar: React.FC<ShapeToolbarProps> = ({
+  onAddNote,
   selectedNote,
   onUpdateNote,
   onSetPinned,
@@ -31,6 +33,10 @@ export const ShapeToolbar: React.FC<ShapeToolbarProps> = ({
 }) => {
   return (
     <div className="toolbar" style={{ '--zoom': 1 } as React.CSSProperties}>
+      <button onClick={onAddNote} title="Add Note">
+        <i className="fa-solid fa-plus" />
+      </button>
+      <div className="toolbar-divider" />
       {selectedNote && (
         <>
           <ColorPalette
