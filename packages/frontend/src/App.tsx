@@ -7,7 +7,8 @@ import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
 import LoginOverlay from './LoginOverlay';
 import { KeyWatcher } from "./services/KeyWatcher";
-import { appService, AppState, Note } from './services/AppService';
+import { appService, AppState } from './services/AppService';
+import type { Note } from '@sticky-notes/shared';
 import './App.css';
 
 // Component containing the main application logic. It is rendered inside

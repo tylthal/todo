@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Note } from './services/AppService';
+import type { Note } from '@sticky-notes/shared';
 import { ColorPalette } from './ColorPalette';
 import { useDialog } from './DialogService';
 import ConfirmDialog from './ConfirmDialog';

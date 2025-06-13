@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StickyNote } from './StickyNote';
 import './App.css';
 import './ContextMenu.css';
-import { Note, appService } from './services/AppService';
+import { appService } from './services/AppService';
+import type { Note } from '@sticky-notes/shared';
 import {
   copyNote,
   pasteNote,

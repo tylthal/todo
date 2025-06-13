@@ -5,7 +5,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "test": "echo 'no tests yet'"
+    "test": "TS_NODE_TRANSPILE_ONLY=1 node -r ts-node/register test/useShapeInteractions.test.js"
   },
   "dependencies": {
     "@aws-amplify/auth": "^5.6.15",

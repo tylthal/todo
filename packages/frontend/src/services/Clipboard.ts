@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
-import { AppService, Note } from './AppService';
+import { AppService } from './AppService';
+import type { Note } from '@sticky-notes/shared';
 
 const emitter = new EventEmitter();
 
