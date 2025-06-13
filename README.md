@@ -36,6 +36,17 @@ following capabilities:
 
 The backend package only exposes a simple Lambda function returning a greeting
 and serves as a placeholder for future API development.
+
+## Workspace Ownership Model
+
+Workspaces are now associated with user accounts. The shared
+[`Workspace` interface](packages/shared/src/models/Workspace.ts) defines an
+`ownerId` for the account that created the workspace along with a list of
+`contributorIds` for other accounts that can edit it. The
+[`User` interface](packages/shared/src/models/User.ts) tracks matching
+`ownedWorkspaceIds` and `contributedWorkspaceIds` so the application knows which
+boards a user controls. Every workspace therefore has a single owner account and
+may optionally list contributor accounts.
 ## Frontend Service Layer
 
 A new `AppService` manages all client-side state including the active user, workspaces and their canvas data. Components now call the service when mutating state (adding notes, switching workspaces, etc.) and subscribe to its change events to keep React state in sync. These methods will later post updates to the backend.
