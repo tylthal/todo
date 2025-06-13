@@ -3,3 +3,5 @@
 export const hello = () => 'Hello from shared library';
 
 export * from './models/User';
+export * from './models/Shape';
+export * from './models/Note';

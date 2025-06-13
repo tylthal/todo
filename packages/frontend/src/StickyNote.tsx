@@ -1,15 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Note } from './services/AppService';
+import type { Note } from '@sticky-notes/shared';
 import type { Point } from './zoomUtils';
 import { NoteControls } from './NoteControls';
-
-const SNAP_THRESHOLD = 10;
-const snap = (value: number, candidates: number[], threshold: number) => {
-  for (const c of candidates) {
-    if (Math.abs(value - c) <= threshold) return c;
-  }
-  return value;
-};
+import { ShapeInteractions } from './shapes/useShapeInteractions';
 
 // Interactive sticky note component that can be dragged, resized and edited.
 
@@ -77,19 +70,8 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
   overlayContainer,
   onSnapLinesChange,
 }) => {
-  // Track the current interaction mode (dragging, resizing or pinching) and store
-  // temporary data needed to calculate positions during the gesture.
+  // Track the current interaction mode (pinching only; drag/resize handled by ShapeInteractions)
   const modeRef = useRef<'drag' | 'resize' | 'pinch' | null>(null);
-  // For drag operations we store the pointer's offset from the note's origin
-  const offsetRef = useRef({ x: 0, y: 0 });
-  // For resize operations we remember the starting pointer position and note
-  // dimensions.
-  const resizeRef = useRef({
-    startX: 0,
-    startY: 0,
-    startWidth: 0,
-    startHeight: 0,
-  });
   // Track active touch points for pinch gestures
   const touchesRef = useRef(new Map<number, Point>());
   // Information about an active pinch gesture
@@ -139,26 +121,35 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     setFontSize(size);
   }, [note.width, note.height, note.content, editing]);
 
-  // Convert screen coordinates to board coordinates taking zoom/offset into
-  // account.
+  const interactionsRef = useRef<ShapeInteractions<Note> | null>(null);
+
+  useEffect(() => {
+    interactionsRef.current = new ShapeInteractions<Note>({
+      shape: note,
+      allShapes: allNotes,
+      zoom,
+      offset,
+      snapToEdges,
+      onUpdate,
+      onSnapLinesChange,
+    });
+  }, [note, allNotes, zoom, offset, snapToEdges, onUpdate, onSnapLinesChange]);
+
   const toBoard = (clientX: number, clientY: number) => ({
     x: (clientX - offset.x) / zoom,
     y: (clientY - offset.y) / zoom,
   });
 
   const pointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Begin a drag or resize interaction. Determine which based on the element
-    // under the pointer. Locked notes should pass the event through so the
-    // canvas can handle panning.
     if (!note.locked) {
       e.stopPropagation();
     }
     onSelect(note.id);
     if (editing || note.locked) return;
-    const target = e.target as HTMLElement;
-    const pos = toBoard(e.clientX, e.clientY);
-
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    interactionsRef.current?.pointerDown(e.nativeEvent);
+    const target = e.target as HTMLElement;
 
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -183,24 +174,14 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     }
 
     if (target.closest('.resize-handle')) {
-      // Start resizing from the current pointer position
       modeRef.current = 'resize';
-      resizeRef.current = {
-        startX: pos.x,
-        startY: pos.y,
-        startWidth: note.width,
-        startHeight: note.height,
-      };
     } else {
-      // Start dragging
       modeRef.current = 'drag';
-      offsetRef.current = { x: pos.x - note.x, y: pos.y - note.y };
     }
   };
 
   const pointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (editing || note.locked) return;
-    const pos = toBoard(e.clientX, e.clientY);
     if (e.pointerType === 'touch') {
       touchesRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     }
@@ -229,98 +210,10 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
       };
       return;
     }
-    if (modeRef.current === 'drag') {
-      // Move the note according to the pointer, keeping the initial offset.
-      let newX = pos.x - offsetRef.current.x;
-      let newY = pos.y - offsetRef.current.y;
-      let lineX: number | null = null;
-      let lineY: number | null = null;
-      if (snapToEdges) {
-        const threshold = SNAP_THRESHOLD / zoom;
-        const others = allNotes.filter(n => n.id !== note.id);
-        const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
-        const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
-
-        const snappedLeft = snap(newX, xEdges, threshold);
-        const snappedRight = snap(newX + note.width, xEdges, threshold);
-        if (Math.abs(snappedRight - (newX + note.width)) < Math.abs(snappedLeft - newX)) {
-          if (snappedRight !== newX + note.width) lineX = snappedRight;
-          newX += snappedRight - (newX + note.width);
-        } else if (snappedLeft !== newX) {
-          lineX = snappedLeft;
-          newX = snappedLeft;
-        }
-
-        const snappedTop = snap(newY, yEdges, threshold);
-        const snappedBottom = snap(newY + note.height, yEdges, threshold);
-        if (Math.abs(snappedBottom - (newY + note.height)) < Math.abs(snappedTop - newY)) {
-          if (snappedBottom !== newY + note.height) lineY = snappedBottom;
-          newY += snappedBottom - (newY + note.height);
-        } else if (snappedTop !== newY) {
-          lineY = snappedTop;
-          newY = snappedTop;
-        }
-      }
-      onUpdate(note.id, { x: newX, y: newY });
-      if (snapToEdges && onSnapLinesChange) {
-        onSnapLinesChange({ x: lineX, y: lineY });
-      } else if (onSnapLinesChange) {
-        onSnapLinesChange({ x: null, y: null });
-      }
-    }
-    if (modeRef.current === 'resize') {
-      // Resize the note based on pointer delta from the start of the gesture.
-      const dx = pos.x - resizeRef.current.startX;
-      const dy = pos.y - resizeRef.current.startY;
-      let newX = note.x;
-      let newY = note.y;
-      let newWidth = Math.max(80, resizeRef.current.startWidth + dx);
-      let newHeight = Math.max(60, resizeRef.current.startHeight + dy);
-      let lineX: number | null = null;
-      let lineY: number | null = null;
-      if (snapToEdges) {
-        const threshold = SNAP_THRESHOLD / zoom;
-        const others = allNotes.filter(n => n.id !== note.id);
-        const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
-        const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
-
-        const snappedLeft = snap(newX, xEdges, threshold);
-        const snappedRight = snap(newX + newWidth, xEdges, threshold);
-        if (snappedLeft !== newX) {
-          const shift = newX - snappedLeft;
-          lineX = snappedLeft;
-          newX = snappedLeft;
-          newWidth = Math.max(80, newWidth + shift);
-        }
-        if (snappedRight !== newX + newWidth) {
-          lineX = snappedRight;
-          newWidth = Math.max(80, snappedRight - newX);
-        }
-
-        const snappedTop = snap(newY, yEdges, threshold);
-        const snappedBottom = snap(newY + newHeight, yEdges, threshold);
-        if (snappedTop !== newY) {
-          const shift = newY - snappedTop;
-          lineY = snappedTop;
-          newY = snappedTop;
-          newHeight = Math.max(60, newHeight + shift);
-        }
-        if (snappedBottom !== newY + newHeight) {
-          lineY = snappedBottom;
-          newHeight = Math.max(60, snappedBottom - newY);
-        }
-      }
-      onUpdate(note.id, { x: newX, y: newY, width: newWidth, height: newHeight });
-      if (snapToEdges && onSnapLinesChange) {
-        onSnapLinesChange({ x: lineX, y: lineY });
-      } else if (onSnapLinesChange) {
-        onSnapLinesChange({ x: null, y: null });
-      }
-    }
+    interactionsRef.current?.pointerMove(e.nativeEvent);
   };
 
   const pointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Gesture finished
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     if (e.pointerType === 'touch') {
@@ -329,12 +222,11 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         pinchRef.current = null;
       }
     }
-    onSnapLinesChange?.({ x: null, y: null });
+    interactionsRef.current?.pointerUp();
   };
 
   const pointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     if (note.locked) return;
-    // Gesture aborted
     modeRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     if (e.pointerType === 'touch') {
@@ -343,7 +235,7 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
         pinchRef.current = null;
       }
     }
-    onSnapLinesChange?.({ x: null, y: null });
+    interactionsRef.current?.pointerCancel();
   };
 
   const handleChange = (value: string) => {

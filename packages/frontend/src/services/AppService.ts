@@ -1,21 +1,7 @@
 import { EventEmitter } from 'events';
-import type { User } from '@sticky-notes/shared';
+import type { User, Note } from '@sticky-notes/shared';
 
 
-/** Sticky note data model */
-export interface Note {
-  id: number;
-  content: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  archived: boolean;
-  color: string;
-  zIndex: number;
-  pinned?: boolean;
-  locked?: boolean;
-}
 
 /** Canvas state for a workspace */
 export interface CanvasState {
