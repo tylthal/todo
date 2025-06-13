@@ -1,4 +1,5 @@
 import type { Shape } from '@sticky-notes/shared';
+import { getShapeBounds } from '@sticky-notes/shared';
 
 export type SnapLines = { x: number | null; y: number | null };
 
@@ -78,9 +79,11 @@ export class ShapeInteractions<T extends Shape> {
     let lineY: number | null = null;
     if (snapToEdges) {
       const threshold = SNAP_THRESHOLD / zoom;
-      const others = allShapes.filter(n => n.id !== shape.id);
-      const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
-      const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
+      const others = allShapes
+        .filter(n => n.id !== shape.id)
+        .map(getShapeBounds);
+      const xEdges = others.flatMap(b => [b.left, b.right]);
+      const yEdges = others.flatMap(b => [b.top, b.bottom]);
       const snappedLeft = snap(newX, xEdges, threshold);
       const snappedRight = snap(newX + shape.width, xEdges, threshold);
       if (Math.abs(snappedRight - (newX + shape.width)) < Math.abs(snappedLeft - newX)) {
@@ -116,9 +119,11 @@ export class ShapeInteractions<T extends Shape> {
     let lineY: number | null = null;
     if (snapToEdges) {
       const threshold = SNAP_THRESHOLD / zoom;
-      const others = allShapes.filter(n => n.id !== shape.id);
-      const xEdges = others.flatMap(n => [n.x, n.x + n.width]);
-      const yEdges = others.flatMap(n => [n.y, n.y + n.height]);
+      const others = allShapes
+        .filter(n => n.id !== shape.id)
+        .map(getShapeBounds);
+      const xEdges = others.flatMap(b => [b.left, b.right]);
+      const yEdges = others.flatMap(b => [b.top, b.bottom]);
       const snappedLeft = snap(newX, xEdges, threshold);
       const snappedRight = snap(newX + newWidth, xEdges, threshold);
       if (snappedLeft !== newX) {
