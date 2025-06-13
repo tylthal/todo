@@ -5,6 +5,7 @@ export interface Shape {
   width: number;
   height: number;
   zIndex: number;
+  rotation: number;
   pinned?: boolean;
   locked?: boolean;
   color: string;
