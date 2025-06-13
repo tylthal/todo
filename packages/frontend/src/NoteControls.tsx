@@ -1,18 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import type { Note } from '@sticky-notes/shared';
-import { ColorPalette } from './ColorPalette';
-import { useDialog } from './DialogService';
-import ConfirmDialog from './ConfirmDialog';
 import './NoteControls.css';
 
 export interface NoteControlsProps {
   note: Note;
-  onUpdate: (id: number, data: Partial<Note>) => void;
-  onArchive: (id: number, archived: boolean) => void;
-  onSetPinned: (id: number, pinned: boolean) => void;
-  onSetLocked: (id: number, locked: boolean) => void;
-  onDelete: (id: number) => void;
   overlayContainer: HTMLElement | null;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
   onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
@@ -22,44 +14,12 @@ export interface NoteControlsProps {
 
 export const NoteControls: React.FC<NoteControlsProps> = ({
   note,
-  onUpdate,
-  onArchive,
-  onSetPinned,
-  onSetLocked,
-  onDelete,
   overlayContainer,
   onPointerDown,
   onPointerMove,
   onPointerUp,
   onPointerCancel,
 }) => {
-  const dialog = useDialog();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuSide, setMenuSide] = useState<'left' | 'right'>('left');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e: PointerEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', handler);
-    return () => document.removeEventListener('pointerdown', handler);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (!menuOpen || !containerRef.current || !menuRef.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const menuWidth = menuRef.current.offsetWidth;
-    if (containerRect.left + menuWidth > window.innerWidth && containerRect.right - menuWidth > 0) {
-      setMenuSide('right');
-    } else {
-      setMenuSide('left');
-    }
-  }, [menuOpen]);
   if (!overlayContainer) return null;
   return createPortal(
     <div
@@ -72,68 +32,6 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
         transform: `rotate(${note.rotation}deg)`,
       }}
     >
-      <div className="note-toolbar">
-        <ColorPalette
-          value={note.color}
-          onChange={(color) => onUpdate(note.id, { color })}
-        />
-        <div ref={containerRef} className="menu-container" onPointerDown={e => e.stopPropagation()}>
-          <button
-            className="note-control menu-button"
-            onPointerDown={e => e.stopPropagation()}
-            onClick={() => setMenuOpen(o => !o)}
-            title="More"
-          >
-            <i className="fa-solid fa-ellipsis" />
-          </button>
-          {menuOpen && (
-            <div ref={menuRef} className={`note-menu menu-${menuSide}`}>
-              <button
-                className={`pin-back note-control${note.pinned ? ' active' : ''}`}
-                onClick={() => { onSetPinned(note.id, !note.pinned); setMenuOpen(false); }}
-                title={note.pinned ? 'Unpin from Back' : 'Pin to Back'}
-              >
-                <i className="fa-solid fa-thumbtack" />
-              </button>
-              <button
-                className={`note-control${note.locked ? ' active' : ''}`}
-                onClick={() => { onSetLocked(note.id, !note.locked); setMenuOpen(false); }}
-                title={note.locked ? 'Unlock' : 'Lock'}
-              >
-                <i className={`fa-solid ${note.locked ? 'fa-lock' : 'fa-lock-open'}`} />
-              </button>
-              <button
-                className="note-control"
-                onClick={() => { onArchive(note.id, !note.archived); setMenuOpen(false); }}
-                title={note.archived ? 'Unarchive' : 'Archive'}
-              >
-                <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`} />
-              </button>
-              <button
-                className="note-control"
-                onClick={async () => {
-                  try {
-                    await dialog.open<void>((close) => (
-                      <ConfirmDialog
-                        message="Delete this note?"
-                        onConfirm={() => close.resolve()}
-                        onCancel={close.reject}
-                      />
-                    ));
-                    onDelete(note.id);
-                  } catch {
-                    /* cancelled */
-                  }
-                  setMenuOpen(false);
-                }}
-                title="Delete"
-              >
-                <i className="fa-solid fa-trash" />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
       {!note.locked && (
         <div
           className="resize-handle note-control"

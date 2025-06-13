@@ -5,6 +5,7 @@ import ConfirmDialog from './ConfirmDialog';
 import { UserProvider, UserContext } from './UserContext';
 import { AccountControls } from './AccountControls';
 import { NoteCanvas } from './NoteCanvas';
+import { ShapeToolbar } from './ShapeToolbar';
 import LoginOverlay from './LoginOverlay';
 import { KeyWatcher } from "./services/KeyWatcher";
 import { appService, AppState } from './services/AppService';
@@ -29,6 +30,7 @@ const AppContent: React.FC = () => {
   const currentWsIndex = workspaces.findIndex(w => w.id === currentWorkspaceId);
   const workspace = workspaces[currentWsIndex];
   const snapToEdges = workspace.canvas.snapToEdges;
+  const selectedNote = workspace.notes.find(n => n.id === selectedId) || null;
 
   const addNote = () => {
     appService.addNote();
@@ -160,6 +162,18 @@ const AppContent: React.FC = () => {
           onSwitchWorkspace={switchWorkspace}
           onRenameWorkspace={renameWorkspace}
           onDeleteWorkspace={deleteWorkspace}
+        />
+        <ShapeToolbar
+          selectedNote={selectedNote}
+          onUpdateNote={updateNote}
+          onSetPinned={setNotePinned}
+          onSetLocked={setNoteLocked}
+          onArchive={(id, a) => appService.archiveNote(id, a)}
+          onDelete={deleteNote}
+          showArchived={showArchived}
+          onToggleShowArchived={toggleShowArchived}
+          snapToEdges={snapToEdges}
+          onToggleSnap={toggleSnapToEdges}
         />
         <NoteCanvas
           notes={workspace.notes.filter(n => showArchived || !n.archived)}
