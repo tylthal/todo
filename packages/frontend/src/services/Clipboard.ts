@@ -36,7 +36,6 @@ export function pasteNote(
     pinned: original.pinned,
     locked: original.locked,
   });
-  clearClipboard();
   return newId;
 }
 
