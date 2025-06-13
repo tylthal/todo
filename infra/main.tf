@@ -170,6 +170,282 @@ resource "aws_cognito_user_pool_domain" "main" {
   user_pool_id = aws_cognito_user_pool.main.id
 }
 
+#######################
+# Backend Infrastructure
+#######################
+
+# DynamoDB table storing users, workspaces and notes
+resource "aws_dynamodb_table" "main" {
+  name         = var.table_name
+  billing_mode = "PAY_PER_REQUEST"
+
+  hash_key  = "PK"
+  range_key = "SK"
+
+  attribute {
+    name = "PK"
+    type = "S"
+  }
+
+  attribute {
+    name = "SK"
+    type = "S"
+  }
+}
+
+# IAM role and permissions for Lambda functions
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "lambda_exec" {
+  name               = "sticky-notes-lambda"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+data "aws_iam_policy_document" "lambda_dynamo" {
+  statement {
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:DeleteItem"
+    ]
+    resources = [
+      aws_dynamodb_table.main.arn,
+      "${aws_dynamodb_table.main.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_dynamo" {
+  name   = "lambda-dynamo"
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.lambda_dynamo.json
+}
+
+# Package Lambda code from the compiled backend
+data "archive_file" "backend" {
+  type        = "zip"
+  source_dir  = "${path.module}/../packages/backend/dist"
+  output_path = "${path.module}/backend.zip"
+}
+
+resource "aws_lambda_function" "backend" {
+  function_name = "sticky-notes-backend"
+  filename         = data.archive_file.backend.output_path
+  source_code_hash = data.archive_file.backend.output_base64sha256
+  handler          = "handler.handler"
+  runtime          = "nodejs18.x"
+  role             = aws_iam_role.lambda_exec.arn
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.main.name
+    }
+  }
+}
+
+# API Gateway REST API
+resource "aws_api_gateway_rest_api" "main" {
+  name = "sticky-notes-api"
+}
+
+# Resources
+resource "aws_api_gateway_resource" "workspaces" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "workspaces"
+}
+
+resource "aws_api_gateway_resource" "workspace_id" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.workspaces.id
+  path_part   = "{id}"
+}
+
+resource "aws_api_gateway_resource" "notes" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_rest_api.main.root_resource_id
+  path_part   = "notes"
+}
+
+resource "aws_api_gateway_resource" "note_id" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.notes.id
+  path_part   = "{id}"
+}
+
+# Cognito authorizer for API methods
+resource "aws_api_gateway_authorizer" "cognito" {
+  name            = "cognito"
+  rest_api_id     = aws_api_gateway_rest_api.main.id
+  identity_source = "method.request.header.Authorization"
+  type            = "COGNITO_USER_POOLS"
+  provider_arns   = [aws_cognito_user_pool.main.arn]
+}
+
+# Methods and integrations
+locals {
+  lambda_uri = "arn:aws:apigateway:${var.aws_region}:lambda:path/2015-03-31/functions/${aws_lambda_function.backend.arn}/invocations"
+}
+
+resource "aws_api_gateway_method" "workspaces_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspaces.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "workspaces_post" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = aws_api_gateway_method.workspaces_post.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "workspaces_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspaces.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "workspaces_get" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspaces.id
+  http_method = aws_api_gateway_method.workspaces_get.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "workspace_id_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspace_id.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "workspace_id_get" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = aws_api_gateway_method.workspace_id_get.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "workspace_id_patch" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspace_id.id
+  http_method   = "PATCH"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "workspace_id_patch" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.workspace_id.id
+  http_method = aws_api_gateway_method.workspace_id_patch.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "notes_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.notes.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "notes_post" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = aws_api_gateway_method.notes_post.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "notes_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.notes.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "notes_get" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.notes.id
+  http_method = aws_api_gateway_method.notes_get.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_api_gateway_method" "note_id_patch" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.note_id.id
+  http_method   = "PATCH"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_integration" "note_id_patch" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.note_id.id
+  http_method = aws_api_gateway_method.note_id_patch.http_method
+  integration_http_method = "POST"
+  type        = "AWS"
+  uri         = local.lambda_uri
+}
+
+resource "aws_lambda_permission" "api" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.backend.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+}
+
+resource "aws_api_gateway_deployment" "main" {
+  depends_on = [
+    aws_api_gateway_integration.workspaces_post,
+    aws_api_gateway_integration.workspaces_get,
+    aws_api_gateway_integration.workspace_id_get,
+    aws_api_gateway_integration.workspace_id_patch,
+    aws_api_gateway_integration.notes_post,
+    aws_api_gateway_integration.notes_get,
+    aws_api_gateway_integration.note_id_patch
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  stage_name  = var.api_stage
+}
+
+
 output "bucket_name" {
   value = aws_s3_bucket.frontend.bucket
 }
@@ -192,4 +468,8 @@ output "user_pool_client_id" {
 
 output "cognito_hosted_ui_domain" {
   value = aws_cognito_user_pool_domain.main.domain
+}
+
+output "api_invoke_url" {
+  value = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.api_stage}"
 }
