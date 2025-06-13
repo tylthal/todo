@@ -32,8 +32,9 @@ variable "api_domain_name" {
 }
 
 variable "api_certificate_arn" {
-  description = "ACM certificate ARN for the API domain"
+  description = "ACM certificate ARN for the API domain. If null, a certificate will be created in us-east-1"
   type        = string
+  default     = null
 }
 
 variable "google_client_id" {

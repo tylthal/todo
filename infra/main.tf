@@ -12,6 +12,11 @@ provider "aws" {
   region = var.aws_region
 }
 
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 resource "aws_s3_bucket" "frontend" {
   bucket = var.bucket_name
 
@@ -115,7 +120,7 @@ resource "aws_route53_record" "frontend" {
 
 resource "aws_api_gateway_domain_name" "api" {
   domain_name = var.api_domain_name
-  certificate_arn = var.api_certificate_arn
+  certificate_arn = local.api_cert_arn
   endpoint_configuration {
     types = ["EDGE"]
   }
@@ -141,6 +146,44 @@ resource "aws_route53_record" "api" {
 
 data "aws_route53_zone" "main" {
   name = var.domain_name_root
+}
+
+# Create an ACM certificate for the API domain in us-east-1 when an ARN isn't provided
+resource "aws_acm_certificate" "api" {
+  count              = var.api_certificate_arn == null ? 1 : 0
+  provider           = aws.us_east_1
+  domain_name        = var.api_domain_name
+  validation_method  = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "api_cert_validation" {
+  for_each = var.api_certificate_arn == null ? {
+    for dvo in aws_acm_certificate.api[0].domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  } : {}
+  allow_overwrite = true
+  name    = each.value.name
+  records = [each.value.record]
+  type    = each.value.type
+  ttl     = 60
+  zone_id = data.aws_route53_zone.main.zone_id
+}
+
+resource "aws_acm_certificate_validation" "api" {
+  count               = var.api_certificate_arn == null ? 1 : 0
+  provider            = aws.us_east_1
+  certificate_arn     = aws_acm_certificate.api[0].arn
+  validation_record_fqdns = [for r in aws_route53_record.api_cert_validation : r.fqdn]
+}
+
+locals {
+  api_cert_arn = var.api_certificate_arn != null ? var.api_certificate_arn : aws_acm_certificate_validation.api[0].certificate_arn
 }
 
 # Cognito User Pool for authentication

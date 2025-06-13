@@ -142,17 +142,16 @@ distribution.
 2. Apply the configuration, providing a unique S3 bucket name, Cognito settings
    and AWS region:
    ```bash
-   terraform apply \
-     -var="bucket_name=<your-bucket>" \
-     -var="aws_region=<region>" \
-     -var="acm_certificate_arn=<certificate-arn>" \
-     -var="api_domain_name=<api-domain>" \
-     -var="api_certificate_arn=<api-cert-arn>" \
-     -var="google_client_id=<google-oauth-client-id>" \
-     -var="google_client_secret=<google-oauth-secret>" \
-     -var="callback_urls=[\"https://notes.example.com/callback\"]" \
-      -var="logout_urls=[\"https://notes.example.com\"]" \
-      -var="cognito_domain_prefix=<unique-prefix>"
+    terraform apply \
+      -var="bucket_name=<your-bucket>" \
+      -var="aws_region=<region>" \
+      -var="acm_certificate_arn=<certificate-arn>" \
+      -var="api_domain_name=<api-domain>" \
+      -var="google_client_id=<google-oauth-client-id>" \
+      -var="google_client_secret=<google-oauth-secret>" \
+      -var="callback_urls=[\"https://notes.example.com/callback\"]" \
+       -var="logout_urls=[\"https://notes.example.com\"]" \
+       -var="cognito_domain_prefix=<unique-prefix>"
    ```
    Terraform will output the CloudFront distribution ID which is required for
    frontend deployments.
@@ -160,9 +159,10 @@ distribution.
    `cognito_hosted_ui_domain` values used when configuring the frontend
    authentication flow.
 
-Terraform also configures a custom domain for the API when `api_domain_name`
-and `api_certificate_arn` are provided so the backend can be accessed via
-HTTPS.
+Terraform also configures a custom domain for the API. If `api_certificate_arn`
+is omitted, Terraform will request a new ACM certificate in the `us-east-1`
+region and validate it using Route53 DNS records so the backend can be
+accessed via HTTPS.
 
 ### Authentication configuration
 
