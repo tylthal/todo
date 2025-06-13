@@ -332,11 +332,6 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
     {overlayContainer && selected && !editing && (
       <NoteControls
         note={note}
-        onUpdate={onUpdate}
-        onArchive={onArchive}
-        onSetPinned={onSetPinned}
-        onSetLocked={onSetLocked}
-        onDelete={onDelete}
         overlayContainer={overlayContainer}
         onPointerDown={pointerDown}
         onPointerMove={pointerMove}
