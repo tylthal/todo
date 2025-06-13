@@ -139,6 +139,17 @@ export const NoteControls: React.FC<NoteControlsProps> = ({
           <i className="fa-solid fa-up-right-and-down-left-from-center" />
         </div>
       )}
+      {!note.locked && (
+        <div
+          className="rotate-handle note-control"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+        >
+          <i className="fa-solid fa-rotate" />
+        </div>
+      )}
     </div>,
     overlayContainer
   );

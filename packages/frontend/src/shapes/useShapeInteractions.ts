@@ -33,9 +33,10 @@ function snap(value: number, candidates: number[], threshold: number) {
  * It mirrors the logic previously embedded in the StickyNote component.
  */
 export class ShapeInteractions<T extends Shape> {
-  private mode: 'drag' | 'resize' | null = null;
+  private mode: 'drag' | 'resize' | 'rotate' | null = null;
   private dragOffset = { x: 0, y: 0 };
   private resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+  private rotateStart = { angle: 0, rotation: 0 };
 
   constructor(private opts: ShapeInteractionOptions<T>) {}
 
@@ -61,6 +62,14 @@ export class ShapeInteractions<T extends Shape> {
         width: this.opts.shape.width,
         height: this.opts.shape.height,
       };
+    } else if (target.closest('.rotate-handle')) {
+      this.mode = 'rotate';
+      const center = {
+        x: this.opts.shape.x + this.opts.shape.width / 2,
+        y: this.opts.shape.y + this.opts.shape.height / 2,
+      };
+      const angle = Math.atan2(pos.y - center.y, pos.x - center.x);
+      this.rotateStart = { angle, rotation: this.opts.shape.rotation };
     } else {
       this.mode = 'drag';
       this.dragOffset = { x: pos.x - this.opts.shape.x, y: pos.y - this.opts.shape.y };
@@ -74,6 +83,8 @@ export class ShapeInteractions<T extends Shape> {
       this.handleDrag(pos);
     } else if (this.mode === 'resize') {
       this.handleResize(pos);
+    } else if (this.mode === 'rotate') {
+      this.handleRotate(pos);
     }
   }
 
@@ -175,6 +186,15 @@ export class ShapeInteractions<T extends Shape> {
     }
     onUpdate(shape.id, { x: newX, y: newY, width: newWidth, height: newHeight });
     onSnapLinesChange?.(snapToEdges ? { x: lineX, y: lineY } : { x: null, y: null });
+  }
+
+  private handleRotate(pos: { x: number; y: number }) {
+    const { shape, onUpdate } = this.opts;
+    const center = { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+    const angle = Math.atan2(pos.y - center.y, pos.x - center.x);
+    const diff = angle - this.rotateStart.angle;
+    const rotation = this.rotateStart.rotation + (diff * 180) / Math.PI;
+    onUpdate(shape.id, { rotation });
   }
 
   pointerUp() {
