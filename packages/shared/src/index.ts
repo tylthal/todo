@@ -6,3 +6,4 @@ export * from './models/User.js';
 export * from './models/Shape.js';
 export * from './models/Note.js';
 export * from './models/Workspace.js';
+export * from './TypedEmitter.js';

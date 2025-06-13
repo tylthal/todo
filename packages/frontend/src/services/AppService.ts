@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import type { User, Note, Workspace as SharedWorkspace } from '@sticky-notes/shared';
+import type { TypedEmitter, User, Note, Workspace as SharedWorkspace } from '@sticky-notes/shared';
 
 
 
@@ -24,6 +24,10 @@ export interface AppState {
   currentWorkspaceId: number;
 }
 
+interface AppServiceEvents {
+  change: [AppState];
+}
+
 /**
  * Centralized service responsible for storing application state. All
  * components should mutate state through this service so that future API
@@ -31,7 +35,7 @@ export interface AppState {
  *
  * The service emits a `"change"` event whenever state updates.
  */
-export class AppService extends EventEmitter {
+export class AppService extends EventEmitter implements TypedEmitter<AppServiceEvents> {
   private state: AppState;
 
   constructor() {
