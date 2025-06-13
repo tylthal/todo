@@ -5,7 +5,7 @@
   "scripts": {
     "start": "ts-node src/handler.ts",
     "build": "tsc",
-    "test": "echo 'no tests yet'"
+    "test": "TS_NODE_TRANSPILE_ONLY=1 node -r ts-node/register test/run-tests.js"
   },
   "dependencies": {
     "aws-sdk": "^2.0.0"
