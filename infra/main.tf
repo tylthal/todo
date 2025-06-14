@@ -106,6 +106,17 @@ resource "aws_cloudfront_distribution" "frontend" {
       origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
     }
   }
+  origin {
+    domain_name = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com"
+    origin_id   = "api-gateway"
+    origin_path = "/${var.api_stage}"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+    }
+  }
 
   enabled             = true
   default_root_object = "index.html"
@@ -126,6 +137,18 @@ resource "aws_cloudfront_distribution" "frontend" {
     }
   }
 
+  ordered_cache_behavior {
+    path_pattern     = "/api/*"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "api-gateway"
+
+    viewer_protocol_policy = "redirect-to-https"
+    forwarded_values {
+      query_string = true
+      headers      = ["Authorization", "Content-Type"]
+    }
+  }
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -150,73 +173,13 @@ resource "aws_route53_record" "frontend" {
   }
 }
 
-resource "aws_api_gateway_domain_name" "api" {
-  domain_name     = var.api_domain_name
-  certificate_arn = local.api_cert_arn
-  endpoint_configuration {
-    types = ["EDGE"]
-  }
-}
-
-resource "aws_api_gateway_base_path_mapping" "api" {
-  domain_name = aws_api_gateway_domain_name.api.domain_name
-  api_id      = aws_api_gateway_rest_api.main.id
-  stage_name  = var.api_stage
-}
-
-# Route53 record for API custom domain
-resource "aws_route53_record" "api" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = var.api_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_api_gateway_domain_name.api.cloudfront_domain_name
-    zone_id                = aws_api_gateway_domain_name.api.cloudfront_zone_id
-    evaluate_target_health = false
-  }
-}
 
 data "aws_route53_zone" "main" {
   name = var.domain_name_root
 }
 
-# Create an ACM certificate for the API domain in us-east-1 when an ARN isn't provided
-resource "aws_acm_certificate" "api" {
-  count             = var.api_certificate_arn == null ? 1 : 0
-  provider          = aws.us_east_1
-  domain_name       = var.api_domain_name
-  validation_method = "DNS"
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_route53_record" "api_cert_validation" {
-  for_each = var.api_certificate_arn == null ? {
-    for dvo in aws_acm_certificate.api[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  } : {}
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  type            = each.value.type
-  ttl             = 60
-  zone_id         = data.aws_route53_zone.main.zone_id
-}
-
-resource "aws_acm_certificate_validation" "api" {
-  count                   = var.api_certificate_arn == null ? 1 : 0
-  provider                = aws.us_east_1
-  certificate_arn         = aws_acm_certificate.api[0].arn
-  validation_record_fqdns = [for r in aws_route53_record.api_cert_validation : r.fqdn]
-}
 
 locals {
-  api_cert_arn   = var.api_certificate_arn != null ? var.api_certificate_arn : aws_acm_certificate_validation.api[0].certificate_arn
   allowed_origin = var.allowed_origin != null ? var.allowed_origin : "https://${var.domain_name}"
 }
 
@@ -977,9 +940,6 @@ output "api_invoke_url" {
   value = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.api_stage}"
 }
 
-output "api_domain_name" {
-  value = aws_api_gateway_domain_name.api.domain_name
-}
 
 output "ws_endpoint" {
   value = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"

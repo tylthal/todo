@@ -31,17 +31,6 @@ variable "acm_certificate_arn" {
   type        = string
 }
 
-variable "api_domain_name" {
-  description = "Fully qualified domain name for the API"
-  type        = string
-  default     = "api.notes.thalman.org"
-}
-
-variable "api_certificate_arn" {
-  description = "ACM certificate ARN for the API domain. If null, a certificate will be created in us-east-1"
-  type        = string
-  default     = null
-}
 
 variable "google_client_id" {
   description = "Google OAuth client ID"
