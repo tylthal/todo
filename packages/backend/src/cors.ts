@@ -1,4 +1,9 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+  Context,
+} from 'aws-lambda';
 
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGIN as string,
@@ -6,7 +11,12 @@ export const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS'
 };
 
-export function withErrorHandling(fn: APIGatewayProxyHandler): APIGatewayProxyHandler {
+type AsyncHandler = (
+  event: APIGatewayProxyEvent,
+  context: Context
+) => Promise<APIGatewayProxyResult>;
+
+export function withErrorHandling(fn: AsyncHandler): APIGatewayProxyHandler {
   return async (event, context) => {
     try {
       return await fn(event, context);
