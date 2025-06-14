@@ -29,6 +29,7 @@ process.env.TABLE_NAME = 'TestTable';
   };
   const res = await updateWorkspace(event);
   assert.strictEqual(res.statusCode, 403);
+  assert.strictEqual(res.headers, undefined);
 })();
 
 (async function testUpdateWorkspaceAllowed() {
@@ -43,4 +44,5 @@ process.env.TABLE_NAME = 'TestTable';
   const res = await updateWorkspace(event);
   assert.strictEqual(res.statusCode, 200);
   assert.strictEqual(stub.calls.update.length, 1);
+  assert.strictEqual(res.headers, undefined);
 })();

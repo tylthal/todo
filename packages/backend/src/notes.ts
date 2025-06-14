@@ -5,7 +5,7 @@ import { DynamoDB } from 'aws-sdk';
 import { Note, Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
 import { broadcastWorkspaceEvent } from './websocket';
-import { CORS_HEADERS, withErrorHandling } from './cors';
+import { withErrorHandling } from './error';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -17,7 +17,7 @@ export const createNote = withErrorHandling(async (event) => {
     : {};
   const workspaceId = input.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
+    return { statusCode: 400, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -25,10 +25,10 @@ export const createNote = withErrorHandling(async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
+    return { statusCode: 404, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
+    return { statusCode: 403, body: 'Forbidden' };
   }
 
   const note: Note = {
@@ -64,7 +64,6 @@ export const createNote = withErrorHandling(async (event) => {
 
   return {
     statusCode: 201,
-    headers: CORS_HEADERS,
     body: JSON.stringify(note),
   };
 });
@@ -73,12 +72,12 @@ export const updateNote = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
-    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing id' };
+    return { statusCode: 400, body: 'Missing id' };
   }
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
+    return { statusCode: 400, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -86,10 +85,10 @@ export const updateNote = withErrorHandling(async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
+    return { statusCode: 404, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
+    return { statusCode: 403, body: 'Forbidden' };
   }
 
   const exprParts: string[] = [];
@@ -137,7 +136,6 @@ export const updateNote = withErrorHandling(async (event) => {
 
   return {
     statusCode: 200,
-    headers: CORS_HEADERS,
     body: JSON.stringify(updated.Attributes),
   };
 });
@@ -146,7 +144,7 @@ export const listNotes = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const workspaceId = event.queryStringParameters?.workspaceId;
   if (!workspaceId) {
-    return { statusCode: 400, headers: CORS_HEADERS, body: 'Missing workspaceId' };
+    return { statusCode: 400, body: 'Missing workspaceId' };
   }
 
   const wsRes = await db
@@ -154,10 +152,10 @@ export const listNotes = withErrorHandling(async (event) => {
     .promise();
   const workspace = wsRes.Item as Workspace | undefined;
   if (!workspace) {
-    return { statusCode: 404, headers: CORS_HEADERS, body: 'Workspace not found' };
+    return { statusCode: 404, body: 'Workspace not found' };
   }
   if (!hasWorkspaceAccess(workspace, userId)) {
-    return { statusCode: 403, headers: CORS_HEADERS, body: 'Forbidden' };
+    return { statusCode: 403, body: 'Forbidden' };
   }
 
   const res = await db
@@ -174,7 +172,6 @@ export const listNotes = withErrorHandling(async (event) => {
 
   return {
     statusCode: 200,
-    headers: CORS_HEADERS,
     body: JSON.stringify(notes),
   };
 });

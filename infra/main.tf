@@ -179,10 +179,6 @@ data "aws_route53_zone" "main" {
 }
 
 
-locals {
-  allowed_origin = var.allowed_origin != null ? var.allowed_origin : "https://${var.domain_name}"
-}
-
 # Cognito User Pool for authentication
 resource "aws_cognito_user_pool" "main" {
   name                     = "sticky-notes-pool"
@@ -368,7 +364,6 @@ resource "aws_lambda_function" "backend" {
     variables = {
       TABLE_NAME     = aws_dynamodb_table.main.name
       WS_ENDPOINT    = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
-      ALLOWED_ORIGIN = local.allowed_origin
     }
   }
 
@@ -492,7 +487,6 @@ resource "aws_api_gateway_integration_response" "workspaces_options" {
   http_method = aws_api_gateway_method.workspaces_options.http_method
   status_code = aws_api_gateway_method_response.workspaces_options.status_code
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -567,7 +561,6 @@ resource "aws_api_gateway_integration_response" "workspace_id_options" {
   http_method = aws_api_gateway_method.workspace_id_options.http_method
   status_code = aws_api_gateway_method_response.workspace_id_options.status_code
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -640,7 +633,6 @@ resource "aws_api_gateway_integration_response" "notes_options" {
   http_method = aws_api_gateway_method.notes_options.http_method
   status_code = aws_api_gateway_method_response.notes_options.status_code
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -696,7 +688,6 @@ resource "aws_api_gateway_integration_response" "note_id_options" {
   http_method = aws_api_gateway_method.note_id_options.http_method
   status_code = aws_api_gateway_method_response.note_id_options.status_code
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -872,7 +863,6 @@ resource "aws_api_gateway_gateway_response" "default_4xx" {
   response_type = "DEFAULT_4XX"
 
   response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -883,7 +873,6 @@ resource "aws_api_gateway_gateway_response" "default_5xx" {
   response_type = "DEFAULT_5XX"
 
   response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -894,7 +883,6 @@ resource "aws_api_gateway_gateway_response" "unauthorized" {
   response_type = "UNAUTHORIZED"
 
   response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
@@ -905,7 +893,6 @@ resource "aws_api_gateway_gateway_response" "access_denied" {
   response_type = "ACCESS_DENIED"
 
   response_parameters = {
-    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${local.allowed_origin}'"
     "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PATCH,DELETE,OPTIONS'"
   }
