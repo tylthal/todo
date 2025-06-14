@@ -17,7 +17,7 @@ variable "domain_name" {
 variable "allowed_origin" {
   description = "Allowed origin for CORS headers"
   type        = string
-  default     = "https://${var.domain_name}"
+  default     = null
 }
 
 variable "domain_name_root" {

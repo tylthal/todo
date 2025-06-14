@@ -184,7 +184,7 @@ resource "aws_acm_certificate_validation" "api" {
 
 locals {
   api_cert_arn = var.api_certificate_arn != null ? var.api_certificate_arn : aws_acm_certificate_validation.api[0].certificate_arn
-  allowed_origin = var.allowed_origin
+  allowed_origin = var.allowed_origin != null ? var.allowed_origin : "https://${var.domain_name}"
 }
 
 # Cognito User Pool for authentication
