@@ -3,12 +3,12 @@ import { DynamoDB } from 'aws-sdk';
 import { Note, Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
 import { broadcastWorkspaceEvent } from './websocket';
-import { CORS_HEADERS } from './cors';
+import { CORS_HEADERS, withErrorHandling } from './cors';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
 
-export const createNote: APIGatewayProxyHandler = async (event) => {
+export const createNote = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const input: Partial<Note & { workspaceId: number }> = event.body
     ? JSON.parse(event.body)
@@ -65,9 +65,9 @@ export const createNote: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(note),
   };
-};
+});
 
-export const updateNote: APIGatewayProxyHandler = async (event) => {
+export const updateNote = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
@@ -138,9 +138,9 @@ export const updateNote: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(updated.Attributes),
   };
-};
+});
 
-export const listNotes: APIGatewayProxyHandler = async (event) => {
+export const listNotes = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const workspaceId = event.queryStringParameters?.workspaceId;
   if (!workspaceId) {
@@ -175,6 +175,6 @@ export const listNotes: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(notes),
   };
-};
+});
 
 export { createNote as postNotes, updateNote as patchNote, listNotes as getNotes };
