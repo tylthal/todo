@@ -346,7 +346,20 @@ resource "aws_iam_role_policy" "lambda_dynamo" {
   policy = data.aws_iam_policy_document.lambda_dynamo.json
 }
 
+# Current account details used for KMS policy
+data "aws_caller_identity" "current" {}
+
 data "aws_iam_policy_document" "lambda_kms" {
+  # Allow account root to manage the key
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+
   statement {
     principals {
       type        = "Service"
