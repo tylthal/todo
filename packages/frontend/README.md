@@ -38,5 +38,5 @@ The application expects these variables:
 - `VITE_COGNITO_DOMAIN`
 - `VITE_COGNITO_REDIRECT_URI`
 - `VITE_COGNITO_LOGOUT_URI`
-- `VITE_API_URL` - base URL of the backend API. When deployed behind CloudFront
-  this should be set to `/api`.
+- `VITE_API_URL` - base URL of the backend API. The deployment script sets this
+  to `/api`.
