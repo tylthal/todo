@@ -754,7 +754,6 @@ resource "aws_apigatewayv2_stage" "ws" {
   api_id      = aws_apigatewayv2_api.ws.id
   name        = var.api_stage
   auto_deploy = true
-  xray_tracing_enabled = var.enable_xray
 }
 
 resource "aws_lambda_permission" "ws" {
