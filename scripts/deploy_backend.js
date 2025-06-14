@@ -20,6 +20,7 @@ if (!functionName) {
 run('npm run build --workspace packages/backend');
 
 const distDir = path.join(__dirname, '../packages/backend/dist');
+const buildDir = path.join(__dirname, '../packages/backend/lambda_build');
 const zipPath = path.join(__dirname, '../packages/backend/backend.zip');
 
 if (fs.existsSync(zipPath)) {
@@ -42,7 +43,34 @@ function createZip(sourceDir, outPath) {
 }
 
 async function main() {
-  await createZip(distDir, zipPath);
+  // Prepare Lambda bundle directory
+  if (fs.existsSync(buildDir)) {
+    fs.rmSync(buildDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(buildDir, { recursive: true });
+
+  // Copy compiled JS files (strip top-level dist path)
+  const compiledDir = path.join(distDir, 'backend', 'src');
+  fs.cpSync(compiledDir, buildDir, { recursive: true });
+
+  // Include production dependencies
+  const backendPkg = require('../packages/backend/package.json');
+  const deps = Object.keys(backendPkg.dependencies || {}).filter(
+    (d) => d !== 'aws-sdk'
+  );
+  for (const dep of deps) {
+    const src = path.join(__dirname, '../node_modules', dep);
+    const dest = path.join(buildDir, 'node_modules', dep);
+    if (fs.existsSync(src)) {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.cpSync(src, dest, { recursive: true });
+    }
+  }
+
+  await createZip(buildDir, zipPath);
+
+  // Remove temporary directory
+  fs.rmSync(buildDir, { recursive: true, force: true });
 
   // Deploy the zip to AWS
   run(`aws lambda update-function-code --function-name ${functionName} --zip-file fileb://${zipPath}`);
