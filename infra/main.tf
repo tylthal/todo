@@ -346,6 +346,27 @@ resource "aws_iam_role_policy" "lambda_dynamo" {
   policy = data.aws_iam_policy_document.lambda_dynamo.json
 }
 
+data "aws_iam_policy_document" "lambda_kms" {
+  statement {
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_kms_key" "lambda_env_key" {
+  description = "Lambda environment encryption key"
+  policy      = data.aws_iam_policy_document.lambda_kms.json
+}
+
 # Package Lambda code from the compiled backend
 data "archive_file" "backend" {
   type        = "zip"
@@ -365,6 +386,7 @@ resource "aws_lambda_function" "backend" {
   handler          = "handler.handler"
   runtime          = "nodejs18.x"
   role             = aws_iam_role.lambda_exec.arn
+  kms_key_arn      = aws_kms_key.lambda_env_key.arn
 
   environment {
     variables = {
