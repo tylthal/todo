@@ -79,3 +79,9 @@ variable "api_stage" {
   type        = string
   default     = "prod"
 }
+
+variable "enable_xray" {
+  description = "Enable AWS X-Ray tracing for Lambda and API Gateway"
+  type        = bool
+  default     = false
+}

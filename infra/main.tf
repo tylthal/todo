@@ -317,6 +317,12 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_xray" {
+  count      = var.enable_xray ? 1 : 0
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
 data "aws_iam_policy_document" "lambda_dynamo" {
   statement {
     actions = [
@@ -366,6 +372,10 @@ resource "aws_lambda_function" "backend" {
       WS_ENDPOINT = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
       ALLOWED_ORIGIN = local.allowed_origin
     }
+  }
+
+  tracing_config {
+    mode = var.enable_xray ? "Active" : "PassThrough"
   }
 
   depends_on = [aws_cloudwatch_log_group.lambda]
@@ -744,6 +754,7 @@ resource "aws_apigatewayv2_stage" "ws" {
   api_id      = aws_apigatewayv2_api.ws.id
   name        = var.api_stage
   auto_deploy = true
+  xray_tracing_enabled = var.enable_xray
 }
 
 resource "aws_lambda_permission" "ws" {
@@ -825,6 +836,7 @@ resource "aws_api_gateway_stage" "main" {
   stage_name    = var.api_stage
   rest_api_id   = aws_api_gateway_rest_api.main.id
   deployment_id = aws_api_gateway_deployment.main.id
+  xray_tracing_enabled = var.enable_xray
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway.arn

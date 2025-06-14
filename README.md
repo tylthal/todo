@@ -160,6 +160,10 @@ distribution.
    `cognito_hosted_ui_domain` values used when configuring the frontend
    authentication flow.
 
+To enable AWS X-Ray tracing for the Lambda and API Gateway stages, pass
+`-var="enable_xray=true"` when running `terraform apply`.
+Tracing is disabled by default.
+
 Terraform also configures a custom domain for the API. If `api_certificate_arn`
 is omitted, Terraform will request a new ACM certificate in the `us-east-1`
 region and validate it using Route53 DNS records so the backend can be
