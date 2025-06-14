@@ -55,6 +55,14 @@ resource "aws_s3_bucket" "cloudfront_logs" {
   force_destroy = true
 }
 
+resource "aws_s3_bucket_ownership_controls" "cloudfront_logs" {
+  bucket = aws_s3_bucket.cloudfront_logs.id
+
+  rule {
+    object_ownership = "ObjectWriter"
+  }
+}
+
 resource "aws_s3_bucket_policy" "cloudfront_logs" {
   bucket = aws_s3_bucket.cloudfront_logs.id
   policy = data.aws_iam_policy_document.cloudfront_logs.json
