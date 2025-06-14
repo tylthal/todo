@@ -1,6 +1,7 @@
 import * as AWSXRay from 'aws-xray-sdk';
 AWSXRay.captureAWS(require('aws-sdk'));
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import type { APIGatewayHandler } from './error';
 import { DynamoDB, ApiGatewayManagementApi } from 'aws-sdk';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
@@ -9,7 +10,10 @@ const WS_ENDPOINT = process.env.WS_ENDPOINT as string;
 const db = new DynamoDB.DocumentClient();
 const api = WS_ENDPOINT ? new ApiGatewayManagementApi({ endpoint: WS_ENDPOINT }) : undefined;
 
-export const subscribe: APIGatewayProxyHandler = async (event) => {
+export const subscribe: APIGatewayHandler = async (
+  event: APIGatewayProxyEvent,
+  _context: Context,
+) => {
   const connectionId = event.requestContext.connectionId as string;
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
@@ -30,7 +34,10 @@ export const subscribe: APIGatewayProxyHandler = async (event) => {
   return { statusCode: 200, body: 'Subscribed' };
 };
 
-export const unsubscribe: APIGatewayProxyHandler = async (event) => {
+export const unsubscribe: APIGatewayHandler = async (
+  event: APIGatewayProxyEvent,
+  _context: Context,
+) => {
   const connectionId = event.requestContext.connectionId as string;
   const body = event.body ? JSON.parse(event.body) : {};
   const workspaceId = body.workspaceId;
@@ -51,7 +58,10 @@ export const unsubscribe: APIGatewayProxyHandler = async (event) => {
   return { statusCode: 200, body: 'Unsubscribed' };
 };
 
-export const disconnect: APIGatewayProxyHandler = async (event) => {
+export const disconnect: APIGatewayHandler = async (
+  event: APIGatewayProxyEvent,
+  _context: Context,
+) => {
   const connectionId = event.requestContext.connectionId as string;
 
   const scan = await db
