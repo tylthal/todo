@@ -38,9 +38,9 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
-  block_public_acls   = false
-  block_public_policy = false
-  ignore_public_acls  = false
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
   restrict_public_buckets = false
 }
 
@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "cloudfront_logs" {
 
 data "aws_iam_policy_document" "frontend" {
   statement {
-    effect = "Allow"
+    effect    = "Allow"
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.frontend.arn}/*"]
     principals {
@@ -151,7 +151,7 @@ resource "aws_route53_record" "frontend" {
 }
 
 resource "aws_api_gateway_domain_name" "api" {
-  domain_name = var.api_domain_name
+  domain_name     = var.api_domain_name
   certificate_arn = local.api_cert_arn
   endpoint_configuration {
     types = ["EDGE"]
@@ -183,10 +183,10 @@ data "aws_route53_zone" "main" {
 
 # Create an ACM certificate for the API domain in us-east-1 when an ARN isn't provided
 resource "aws_acm_certificate" "api" {
-  count              = var.api_certificate_arn == null ? 1 : 0
-  provider           = aws.us_east_1
-  domain_name        = var.api_domain_name
-  validation_method  = "DNS"
+  count             = var.api_certificate_arn == null ? 1 : 0
+  provider          = aws.us_east_1
+  domain_name       = var.api_domain_name
+  validation_method = "DNS"
   lifecycle {
     create_before_destroy = true
   }
@@ -201,30 +201,30 @@ resource "aws_route53_record" "api_cert_validation" {
     }
   } : {}
   allow_overwrite = true
-  name    = each.value.name
-  records = [each.value.record]
-  type    = each.value.type
-  ttl     = 60
-  zone_id = data.aws_route53_zone.main.zone_id
+  name            = each.value.name
+  records         = [each.value.record]
+  type            = each.value.type
+  ttl             = 60
+  zone_id         = data.aws_route53_zone.main.zone_id
 }
 
 resource "aws_acm_certificate_validation" "api" {
-  count               = var.api_certificate_arn == null ? 1 : 0
-  provider            = aws.us_east_1
-  certificate_arn     = aws_acm_certificate.api[0].arn
+  count                   = var.api_certificate_arn == null ? 1 : 0
+  provider                = aws.us_east_1
+  certificate_arn         = aws_acm_certificate.api[0].arn
   validation_record_fqdns = [for r in aws_route53_record.api_cert_validation : r.fqdn]
 }
 
 locals {
-  api_cert_arn = var.api_certificate_arn != null ? var.api_certificate_arn : aws_acm_certificate_validation.api[0].certificate_arn
+  api_cert_arn   = var.api_certificate_arn != null ? var.api_certificate_arn : aws_acm_certificate_validation.api[0].certificate_arn
   allowed_origin = var.allowed_origin != null ? var.allowed_origin : "https://${var.domain_name}"
 }
 
 # Cognito User Pool for authentication
 resource "aws_cognito_user_pool" "main" {
-  name                = "sticky-notes-pool"
+  name                     = "sticky-notes-pool"
   auto_verified_attributes = ["email"]
-  username_attributes = ["email"]
+  username_attributes      = ["email"]
 }
 
 # Client application using OAuth2 code grant
@@ -237,10 +237,10 @@ resource "aws_cognito_user_pool_client" "web" {
   callback_urls = var.callback_urls
   logout_urls   = var.logout_urls
 
-  supported_identity_providers      = ["COGNITO", "Google"]
+  supported_identity_providers         = ["COGNITO", "Google"]
   allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_flows               = ["code"]
-  allowed_oauth_scopes              = [
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes = [
     "email",
     "openid",
     "profile",
@@ -255,8 +255,8 @@ resource "aws_cognito_identity_provider" "google" {
   provider_type = "Google"
 
   provider_details = {
-    client_id     = var.google_client_id
-    client_secret = var.google_client_secret
+    client_id        = var.google_client_id
+    client_secret    = var.google_client_secret
     authorize_scopes = "openid email profile"
   }
 
@@ -393,7 +393,7 @@ resource "aws_cloudwatch_log_group" "lambda" {
 }
 
 resource "aws_lambda_function" "backend" {
-  function_name = "sticky-notes-backend"
+  function_name    = "sticky-notes-backend"
   filename         = data.archive_file.backend.output_path
   source_code_hash = data.archive_file.backend.output_base64sha256
   handler          = "handler.handler"
@@ -403,8 +403,8 @@ resource "aws_lambda_function" "backend" {
 
   environment {
     variables = {
-      TABLE_NAME  = aws_dynamodb_table.main.name
-      WS_ENDPOINT = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
+      TABLE_NAME     = aws_dynamodb_table.main.name
+      WS_ENDPOINT    = "${aws_apigatewayv2_api.ws.api_endpoint}/${var.api_stage}"
       ALLOWED_ORIGIN = local.allowed_origin
     }
   }
@@ -469,12 +469,12 @@ resource "aws_api_gateway_method" "workspaces_post" {
 }
 
 resource "aws_api_gateway_integration" "workspaces_post" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspaces.id
-  http_method = aws_api_gateway_method.workspaces_post.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.workspaces.id
+  http_method             = aws_api_gateway_method.workspaces_post.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "workspaces_get" {
@@ -486,18 +486,18 @@ resource "aws_api_gateway_method" "workspaces_get" {
 }
 
 resource "aws_api_gateway_integration" "workspaces_get" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspaces.id
-  http_method = aws_api_gateway_method.workspaces_get.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.workspaces.id
+  http_method             = aws_api_gateway_method.workspaces_get.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "workspaces_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspaces.id
-  http_method = "OPTIONS"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspaces.id
+  http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
@@ -544,12 +544,12 @@ resource "aws_api_gateway_method" "workspace_id_get" {
 }
 
 resource "aws_api_gateway_integration" "workspace_id_get" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspace_id.id
-  http_method = aws_api_gateway_method.workspace_id_get.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.workspace_id.id
+  http_method             = aws_api_gateway_method.workspace_id_get.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "workspace_id_patch" {
@@ -561,18 +561,18 @@ resource "aws_api_gateway_method" "workspace_id_patch" {
 }
 
 resource "aws_api_gateway_integration" "workspace_id_patch" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspace_id.id
-  http_method = aws_api_gateway_method.workspace_id_patch.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.workspace_id.id
+  http_method             = aws_api_gateway_method.workspace_id_patch.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "workspace_id_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.workspace_id.id
-  http_method = "OPTIONS"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.workspace_id.id
+  http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
@@ -619,12 +619,12 @@ resource "aws_api_gateway_method" "notes_post" {
 }
 
 resource "aws_api_gateway_integration" "notes_post" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.notes.id
-  http_method = aws_api_gateway_method.notes_post.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.notes.id
+  http_method             = aws_api_gateway_method.notes_post.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "notes_get" {
@@ -636,26 +636,26 @@ resource "aws_api_gateway_method" "notes_get" {
 }
 
 resource "aws_api_gateway_integration" "notes_get" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.notes.id
-  http_method = aws_api_gateway_method.notes_get.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.notes.id
+  http_method             = aws_api_gateway_method.notes_get.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "notes_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.notes.id
-  http_method = "OPTIONS"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.notes.id
+  http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "notes_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.notes.id
-  http_method = aws_api_gateway_method.notes_options.http_method
-  type        = "MOCK"
+  rest_api_id       = aws_api_gateway_rest_api.main.id
+  resource_id       = aws_api_gateway_resource.notes.id
+  http_method       = aws_api_gateway_method.notes_options.http_method
+  type              = "MOCK"
   request_templates = { "application/json" = "{\"statusCode\": 200}" }
 }
 
@@ -692,26 +692,26 @@ resource "aws_api_gateway_method" "note_id_patch" {
 }
 
 resource "aws_api_gateway_integration" "note_id_patch" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.note_id.id
-  http_method = aws_api_gateway_method.note_id_patch.http_method
+  rest_api_id             = aws_api_gateway_rest_api.main.id
+  resource_id             = aws_api_gateway_resource.note_id.id
+  http_method             = aws_api_gateway_method.note_id_patch.http_method
   integration_http_method = "POST"
-  type        = "AWS"
-  uri         = local.lambda_uri
+  type                    = "AWS_PROXY"
+  uri                     = local.lambda_uri
 }
 
 resource "aws_api_gateway_method" "note_id_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.note_id.id
-  http_method = "OPTIONS"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.note_id.id
+  http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "note_id_options" {
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  resource_id = aws_api_gateway_resource.note_id.id
-  http_method = aws_api_gateway_method.note_id_options.http_method
-  type        = "MOCK"
+  rest_api_id       = aws_api_gateway_rest_api.main.id
+  resource_id       = aws_api_gateway_resource.note_id.id
+  http_method       = aws_api_gateway_method.note_id_options.http_method
+  type              = "MOCK"
   request_templates = { "application/json" = "{\"statusCode\": 200}" }
 }
 
@@ -755,9 +755,9 @@ resource "aws_apigatewayv2_api" "ws" {
 }
 
 resource "aws_apigatewayv2_integration" "ws_lambda" {
-  api_id           = aws_apigatewayv2_api.ws.id
-  integration_type = "AWS_PROXY"
-  integration_uri  = aws_lambda_function.backend.invoke_arn
+  api_id                 = aws_apigatewayv2_api.ws.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.backend.invoke_arn
   payload_format_version = "1.0"
 }
 
@@ -867,9 +867,9 @@ resource "aws_api_gateway_account" "main" {
 }
 
 resource "aws_api_gateway_stage" "main" {
-  stage_name    = var.api_stage
-  rest_api_id   = aws_api_gateway_rest_api.main.id
-  deployment_id = aws_api_gateway_deployment.main.id
+  stage_name           = var.api_stage
+  rest_api_id          = aws_api_gateway_rest_api.main.id
+  deployment_id        = aws_api_gateway_deployment.main.id
   xray_tracing_enabled = var.enable_xray
 
   access_log_settings {
