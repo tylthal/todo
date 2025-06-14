@@ -247,4 +247,4 @@ set LAMBDA_FUNCTION_NAME="$(terraform -chdir=infra output -raw lambda_function_n
 
 ### Debugging CORS issues
 
-When the frontend and API share the same domain, CORS headers are not required. If you see cross-origin errors, ensure requests to `/api` are correctly proxied to the backend.
+When the frontend and API share the same domain, CORS headers are not required. If you see cross-origin errors, ensure requests to `/api` are correctly proxied to the backend. You can set `VITE_DEV_API_PROXY_TARGET` in `packages/frontend/.env` to forward API calls through the Vite dev server instead of running a local backend.

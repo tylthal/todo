@@ -40,3 +40,16 @@ The application expects these variables:
 - `VITE_COGNITO_LOGOUT_URI`
 - `VITE_API_URL` - base URL of the backend API. The deployment script sets this
   to `/api`.
+- `VITE_DEV_API_PROXY_TARGET` - optional target for the dev server proxy. When
+  set, requests to `/api` are forwarded to this URL.
+
+## Development proxy
+
+Set `VITE_DEV_API_PROXY_TARGET` in your `.env` file to proxy API requests
+through the Vite dev server. This can be useful when reusing the production API
+while running the frontend locally:
+
+```bash
+VITE_DEV_API_PROXY_TARGET=https://notes.example.com
+npm run dev --workspace packages/frontend
+```
