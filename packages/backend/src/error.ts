@@ -1,8 +1,11 @@
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 
-type AsyncHandler = (event: APIGatewayProxyEvent, context: Context) => Promise<APIGatewayProxyResult>;
+export type APIGatewayHandler = (
+  event: APIGatewayProxyEvent,
+  context: Context,
+) => Promise<APIGatewayProxyResult>;
 
-export function withErrorHandling(fn: AsyncHandler): APIGatewayProxyHandler {
+export function withErrorHandling(fn: APIGatewayHandler): APIGatewayHandler {
   return async (event, context) => {
     try {
       return await fn(event, context);

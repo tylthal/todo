@@ -1,6 +1,5 @@
 import * as AWSXRay from 'aws-xray-sdk';
 AWSXRay.captureAWS(require('aws-sdk'));
-import { APIGatewayProxyHandler } from 'aws-lambda';
 import { DynamoDB } from 'aws-sdk';
 import { Note, Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';

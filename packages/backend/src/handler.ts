@@ -1,6 +1,6 @@
 import * as AWSXRay from 'aws-xray-sdk';
 AWSXRay.captureAWS(require('aws-sdk'));
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import type { APIGatewayHandler } from './error';
 import { withErrorHandling } from './error';
 import {
   createWorkspace,
@@ -12,7 +12,7 @@ import {
 import { createNote, updateNote, listNotes } from './notes';
 import { subscribe, unsubscribe, disconnect } from './websocket';
 
-export const handler: APIGatewayProxyHandler = withErrorHandling(
+export const handler: APIGatewayHandler = withErrorHandling(
   async (event, context) => {
     // Handle WebSocket routes first
     const routeKey = (event.requestContext as any).routeKey as string | undefined;
