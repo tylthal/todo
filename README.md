@@ -69,7 +69,7 @@ The project uses a monorepo managed with npm workspaces. Source code lives in `p
 Browser ──> Frontend (React / Vite) ──> Backend API (AWS Lambda)
 ```
 
-The frontend is a Vite-based React app responsible for rendering notes and managing local state. The backend folder contains a placeholder Lambda handler which would be expanded to persist notes in DynamoDB and provide authentication via Cognito. Shared utilities live under the `shared` package and can be imported by both frontend and backend code.
+The frontend is a Vite-based React app responsible for rendering notes and managing local state. The backend folder contains a placeholder Lambda handler which would be expanded to persist notes in DynamoDB and provide authentication via Cognito. Shared utilities live under the `shared` package and can be imported by both frontend and backend code.  In production the API is mounted under `/api` on the same domain as the frontend (for example `https://notes.example.com/api`).
 
 ## Local Development
 
@@ -146,18 +146,16 @@ distribution.
       -var="bucket_name=<your-bucket>" \
       -var="aws_region=<region>" \
       -var="acm_certificate_arn=<certificate-arn>" \
-      -var="allowed_origin=https://<your-domain>" \
       -var="google_client_id=<google-oauth-client-id>" \
       -var="google_client_secret=<google-oauth-secret>" \
       -var="callback_urls=[\"https://notes.example.com/callback\"]" \
        -var="logout_urls=[\"https://notes.example.com\"]" \
        -var="cognito_domain_prefix=<unique-prefix>"
    ```
-   Terraform will output the CloudFront distribution ID which is required for
-   frontend deployments.
-   It also prints the `user_pool_id`, `user_pool_client_id` and
-   `cognito_hosted_ui_domain` values used when configuring the frontend
-   authentication flow.
+   Terraform will output the CloudFront distribution ID and domain name along
+   with the `api_invoke_url` used to configure the frontend. It also prints the
+   `user_pool_id`, `user_pool_client_id` and `cognito_hosted_ui_domain` values
+   used when configuring the authentication flow.
 
 To enable AWS X-Ray tracing for the Lambda and API Gateway stages, pass
 `-var="enable_xray=true"` when running `terraform apply`.
@@ -176,13 +174,14 @@ VITE_COGNITO_CLIENT_ID=<your-app-client-id>
 VITE_COGNITO_DOMAIN=<your-hosted-ui-domain>
 VITE_COGNITO_REDIRECT_URI=<http://localhost:5173>
 VITE_COGNITO_LOGOUT_URI=<http://localhost:5173>
-VITE_API_URL=<https://api.notes.example.com>
+VITE_API_URL=<https://notes.example.com/api>
 ```
 
 `VITE_COGNITO_REDIRECT_URI` should match one of the callback URLs specified in
 your Cognito app client settings while `VITE_COGNITO_LOGOUT_URI` must be an
-allowed logout URL.
-`VITE_API_URL` should point to the API domain output by Terraform.
+allowed logout URL. `VITE_API_URL` should be the full URL to your API under the
+same domain (e.g. `https://notes.example.com/api`). If omitted, the frontend
+defaults to `/api`.
 
 ### Deploying the frontend
 
@@ -248,10 +247,6 @@ For Windows cmd.exe:
 set LAMBDA_FUNCTION_NAME="$(terraform -chdir=infra output -raw lambda_function_name)"
 ```
 
-The function also expects an `ALLOWED_ORIGIN` environment variable which should
-match the `allowed_origin` Terraform variable so that CORS headers are set
-correctly.
-
 ### Debugging CORS issues
 
-If API calls fail due to CORS errors, see [docs/cors-debugging.md](docs/cors-debugging.md) for steps to inspect the preflight `OPTIONS` request and the actual `GET` response.
+When the frontend and API share the same domain, CORS headers are not required. If you see cross-origin errors, ensure your `VITE_API_URL` value matches the domain used by the frontend.
