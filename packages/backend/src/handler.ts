@@ -1,3 +1,5 @@
+import * as AWSXRay from 'aws-xray-sdk';
+AWSXRay.captureAWS(require('aws-sdk'));
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { CORS_HEADERS, withErrorHandling } from './cors';
 
