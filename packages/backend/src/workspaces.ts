@@ -3,7 +3,7 @@ import { DynamoDB } from 'aws-sdk';
 import { Workspace } from '@sticky-notes/shared';
 import { getUserId, hasWorkspaceAccess } from './auth';
 import { broadcastWorkspaceEvent } from './websocket';
-import { CORS_HEADERS } from './cors';
+import { CORS_HEADERS, withErrorHandling } from './cors';
 
 const TABLE_NAME = process.env.TABLE_NAME as string;
 const db = new DynamoDB.DocumentClient();
@@ -13,7 +13,7 @@ const db = new DynamoDB.DocumentClient();
  * returns the created Workspace object. This is a placeholder implementation
  * that simply echoes the provided values with a generated id.
  */
-export const createWorkspace: APIGatewayProxyHandler = async (event) => {
+export const createWorkspace = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const input: Partial<Workspace> = event.body ? JSON.parse(event.body) : {};
 
@@ -53,13 +53,13 @@ export const createWorkspace: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(workspace),
   };
-};
+});
 
 /**
  * Retrieve a workspace by id. In this placeholder implementation the returned
  * data is not persisted anywhere and simply returns an example Workspace.
  */
-export const getWorkspace: APIGatewayProxyHandler = async (event) => {
+export const getWorkspace = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
@@ -84,13 +84,13 @@ export const getWorkspace: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(workspace),
   };
-};
+});
 
 /**
  * Update an existing workspace. Accepts partial Workspace fields in the request
  * body and returns the updated object. Data is not persisted yet.
  */
-export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
+export const updateWorkspace = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
@@ -152,12 +152,12 @@ export const updateWorkspace: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(updated.Attributes),
   };
-};
+});
 
 /**
  * Delete a workspace. Simply returns a 204 status code to indicate success.
  */
-export const deleteWorkspace: APIGatewayProxyHandler = async (event) => {
+export const deleteWorkspace = withErrorHandling(async (event) => {
   const userId = getUserId(event);
   const id = event.pathParameters?.id;
   if (!id) {
@@ -186,12 +186,12 @@ export const deleteWorkspace: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: '',
   };
-};
+});
 
 /**
  * List workspaces accessible to the caller. Returns a few example items.
  */
-export const listWorkspaces: APIGatewayProxyHandler = async (event) => {
+export const listWorkspaces = withErrorHandling(async (event) => {
   const userId = getUserId(event);
 
   const user = await db
@@ -222,4 +222,4 @@ export const listWorkspaces: APIGatewayProxyHandler = async (event) => {
     headers: CORS_HEADERS,
     body: JSON.stringify(workspaces),
   };
-};
+});
