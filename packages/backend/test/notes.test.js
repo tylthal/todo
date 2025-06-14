@@ -32,6 +32,7 @@ process.env.TABLE_NAME = 'TestTable';
   };
   const res = await createNote(event);
   assert.strictEqual(res.statusCode, 403);
+  assert.strictEqual(res.headers, undefined);
 })();
 
 (async function testCreateNoteAuthorized() {
@@ -45,4 +46,5 @@ process.env.TABLE_NAME = 'TestTable';
   const res = await createNote(event);
   assert.strictEqual(res.statusCode, 201);
   assert.strictEqual(stub.calls.put.length, 1);
+  assert.strictEqual(res.headers, undefined);
 })();

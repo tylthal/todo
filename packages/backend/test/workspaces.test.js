@@ -34,6 +34,7 @@ function authCtx(sub) {
   const event = Object.assign({ body: JSON.stringify({ name: 'My WS', ownerId: 'user1', contributorIds: ['user2'] }) }, authCtx('user1'));
   const res = await createWorkspace(event);
   assert.strictEqual(res.statusCode, 201);
+  assert.strictEqual(res.headers, undefined);
   const ws = JSON.parse(res.body);
   assert.strictEqual(ws.name, 'My WS');
   assert.strictEqual(ws.ownerId, 'user1');
@@ -44,6 +45,7 @@ function authCtx(sub) {
   const event = Object.assign({ pathParameters: { id: '5' } }, authCtx('user1'));
   const res = await getWorkspace(event);
   assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.headers, undefined);
   const ws = JSON.parse(res.body);
   assert.strictEqual(ws.id, 5);
 })();
@@ -52,6 +54,7 @@ function authCtx(sub) {
   const event = Object.assign({ pathParameters: { id: '1' }, body: JSON.stringify({ name: 'Updated', ownerId: 'user2', contributorIds: [] }) }, authCtx('user1'));
   const res = await updateWorkspace(event);
   assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.headers, undefined);
   const ws = JSON.parse(res.body);
   assert.strictEqual(ws.id, 1);
   assert.strictEqual(ws.name, 'Updated');
@@ -62,11 +65,13 @@ function authCtx(sub) {
   const res = await deleteWorkspace(Object.assign({ pathParameters: { id: '1' } }, authCtx('user1')));
   assert.strictEqual(res.statusCode, 204);
   assert.strictEqual(res.body, '');
+  assert.strictEqual(res.headers, undefined);
 })();
 
 (async function testListWorkspaces(){
   const res = await listWorkspaces(authCtx('user1'));
   assert.strictEqual(res.statusCode, 200);
+  assert.strictEqual(res.headers, undefined);
   const arr = JSON.parse(res.body);
   assert.ok(Array.isArray(arr));
   assert.ok(arr.length >= 2);
