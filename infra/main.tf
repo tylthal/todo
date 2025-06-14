@@ -22,7 +22,7 @@ resource "aws_cloudfront_function" "rewrite_api_path" {
   runtime = "cloudfront-js-1.0"
   publish = true
 
-  code = <<"EOF"
+  code = <<EOF
 function handler(event) {
   var request = event.request;
   if (request.uri.startsWith('/api/')) {
