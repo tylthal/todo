@@ -49,6 +49,30 @@ resource "aws_s3_bucket_policy" "frontend" {
   policy = data.aws_iam_policy_document.frontend.json
 }
 
+# Bucket storing CloudFront access logs
+resource "aws_s3_bucket" "cloudfront_logs" {
+  bucket        = "${var.bucket_name}-logs"
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_policy" "cloudfront_logs" {
+  bucket = aws_s3_bucket.cloudfront_logs.id
+  policy = data.aws_iam_policy_document.cloudfront_logs.json
+}
+
+data "aws_iam_policy_document" "cloudfront_logs" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.cloudfront_logs.arn}/*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+  }
+}
+
 data "aws_iam_policy_document" "frontend" {
   statement {
     effect = "Allow"
@@ -132,14 +156,62 @@ resource "aws_api_gateway_base_path_mapping" "api" {
   stage_name  = var.api_stage
 }
 
+# CloudFront distribution in front of API Gateway
+resource "aws_cloudfront_distribution" "api" {
+  origin {
+    domain_name = "${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com"
+    origin_id   = "api-gateway"
+    origin_path = "/${var.api_stage}"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  enabled = true
+  aliases = [var.api_domain_name]
+
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "api-gateway"
+    viewer_protocol_policy = "redirect-to-https"
+
+    forwarded_values {
+      query_string = true
+      cookies { forward = "all" }
+    }
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn = local.api_cert_arn
+    ssl_support_method  = "sni-only"
+  }
+
+  logging_config {
+    bucket = aws_s3_bucket.cloudfront_logs.bucket_domain_name
+    include_cookies = false
+    prefix = "api/"
+  }
+}
+
 resource "aws_route53_record" "api" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = var.api_domain_name
   type    = "A"
 
   alias {
-    name                   = aws_api_gateway_domain_name.api.cloudfront_domain_name
-    zone_id                = aws_api_gateway_domain_name.api.cloudfront_zone_id
+    name                   = aws_cloudfront_distribution.api.domain_name
+    zone_id                = aws_cloudfront_distribution.api.hosted_zone_id
     evaluate_target_health = false
   }
 }
