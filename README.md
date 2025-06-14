@@ -147,6 +147,7 @@ distribution.
       -var="aws_region=<region>" \
       -var="acm_certificate_arn=<certificate-arn>" \
       -var="api_domain_name=<api-domain>" \
+      -var="allowed_origin=https://<your-domain>" \
       -var="google_client_id=<google-oauth-client-id>" \
       -var="google_client_secret=<google-oauth-secret>" \
       -var="callback_urls=[\"https://notes.example.com/callback\"]" \
@@ -247,3 +248,7 @@ For Windows cmd.exe:
 ```cmd
 set LAMBDA_FUNCTION_NAME="$(terraform -chdir=infra output -raw lambda_function_name)"
 ```
+
+The function also expects an `ALLOWED_ORIGIN` environment variable which should
+match the `allowed_origin` Terraform variable so that CORS headers are set
+correctly.

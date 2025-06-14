@@ -14,6 +14,12 @@ variable "domain_name" {
   default     = "notes.thalman.org"
 }
 
+variable "allowed_origin" {
+  description = "Allowed origin for CORS headers"
+  type        = string
+  default     = "https://${var.domain_name}"
+}
+
 variable "domain_name_root" {
   description = "Route53 hosted zone domain"
   type        = string
