@@ -17,6 +17,22 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_cloudfront_function" "rewrite_api_path" {
+  name    = "rewrite-api-path"
+  runtime = "cloudfront-js-1.0"
+  publish = true
+
+  code = <<"EOF"
+function handler(event) {
+  var request = event.request;
+  if (request.uri.startsWith('/api/')) {
+    request.uri = request.uri.replace(/^\/api/, '');
+  }
+  return request;
+}
+EOF
+}
+
 resource "aws_s3_bucket" "frontend" {
   bucket = var.bucket_name
 
@@ -151,6 +167,10 @@ resource "aws_cloudfront_distribution" "frontend" {
       cookies {
         forward = "none"
       }
+    }
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.rewrite_api_path.arn
     }
   }
   restrictions {
