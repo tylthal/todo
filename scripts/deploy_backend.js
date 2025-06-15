@@ -1,7 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const archiver = require('archiver');
 
 function run(cmd, opts = {}) {
   console.log(cmd);
@@ -15,6 +14,17 @@ if (!functionName) {
   console.error('LAMBDA_FUNCTION_NAME environment variable must be set');
   process.exit(1);
 }
+
+// Ensure root dependencies are installed
+const rootNodeModules = path.join(__dirname, '..', 'node_modules');
+if (!fs.existsSync(rootNodeModules)) {
+  console.error(
+    'Top-level node_modules folder not found. Run "npm install" before deploying.'
+  );
+  process.exit(1);
+}
+
+const archiver = require('archiver');
 
 // Build the backend package
 run('npm run build --workspace packages/backend');
