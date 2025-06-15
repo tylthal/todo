@@ -25,13 +25,19 @@ const sharedPkg = path.join(root, 'packages/shared/package.json');
 const buildDir = path.join(root, 'packages/backend/lambda_build');
 const zipPath = path.join(root, 'packages/backend/backend.zip');
 
+// Determine where compiled backend sources reside. Older build setups place
+// files under dist/backend/src while newer ones output directly to dist/.
+const backendSrc = fs.existsSync(path.join(backendDist, 'handler.js'))
+  ? backendDist
+  : path.join(backendDist, 'backend', 'src');
+
 if (fs.existsSync(buildDir)) {
   fs.rmSync(buildDir, { recursive: true, force: true });
 }
 fs.mkdirSync(buildDir, { recursive: true });
 
 // Copy compiled backend code
-fs.cpSync(backendDist, buildDir, { recursive: true });
+fs.cpSync(backendSrc, buildDir, { recursive: true });
 
 // Copy compiled shared library into node_modules
 const sharedDest = path.join(buildDir, 'node_modules', '@sticky-notes', 'shared');
@@ -40,7 +46,7 @@ fs.cpSync(sharedDist, sharedDest, { recursive: true });
 fs.copyFileSync(sharedPkg, path.join(sharedDest, 'package.json'));
 
 // Gather production dependencies
-const output = execSync('npm ls --omit=dev --workspace packages/backend --parseable')
+const output = execSync('npm ls --omit=dev --all --workspace packages/backend --parseable')
   .toString()
   .trim()
   .split('\n');
