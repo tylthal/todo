@@ -230,7 +230,7 @@ Update the Lambda function after making backend changes with:
 npm run deploy:backend
 ```
 
-The script compiles the backend, packages the Lambda code using the Node [archiver](https://www.npmjs.com/package/archiver) library (so no separate `zip` tool is required) and uploads it with the AWS CLI. All production dependencies are automatically copied into the bundle so packages like `aws-xray-sdk-core` are available at runtime. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
+The script compiles the backend, packages the Lambda code using the Node [archiver](https://www.npmjs.com/package/archiver) library (so no separate `zip` tool is required) and uploads it with the AWS CLI. All production dependencies are automatically copied into the bundle so packages like `aws-xray-sdk-core` are available at runtime. The deployment script expects the repository's root `node_modules` directory to exist, so run `npm install` from the project root before deploying. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
 
 For Bash or other Unix shells:
 
