@@ -139,7 +139,12 @@ distribution.
    cd infra
    terraform init
    ```
-2. Apply the configuration, providing a unique S3 bucket name, Cognito settings
+2. Build the backend package so Terraform can deploy the Lambda code:
+   ```bash
+   npm run deploy:backend
+   ```
+   This command creates `packages/backend/backend.zip` which Terraform uses for the Lambda function.
+3. Apply the configuration, providing a unique S3 bucket name, Cognito settings
    and AWS region:
    ```bash
     terraform apply \
