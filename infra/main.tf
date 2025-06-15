@@ -363,12 +363,6 @@ resource "aws_kms_key" "lambda_env_key" {
   policy      = data.aws_iam_policy_document.lambda_kms.json
 }
 
-# Package Lambda code from the compiled backend
-data "archive_file" "backend" {
-  type        = "zip"
-  source_dir  = "${path.module}/../packages/backend/dist"
-  output_path = "${path.module}/backend.zip"
-}
 
 resource "aws_cloudwatch_log_group" "lambda" {
   name              = "/aws/lambda/sticky-notes-backend"
@@ -377,8 +371,8 @@ resource "aws_cloudwatch_log_group" "lambda" {
 
 resource "aws_lambda_function" "backend" {
   function_name    = "sticky-notes-backend"
-  filename         = data.archive_file.backend.output_path
-  source_code_hash = data.archive_file.backend.output_base64sha256
+  filename         = "${path.module}/../packages/backend/backend.zip"
+  source_code_hash = filebase64sha256("${path.module}/../packages/backend/backend.zip")
   handler          = "handler.handler"
   runtime          = "nodejs18.x"
   role             = aws_iam_role.lambda_exec.arn
