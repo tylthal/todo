@@ -53,17 +53,32 @@ async function main() {
   const compiledDir = path.join(distDir, 'backend', 'src');
   fs.cpSync(compiledDir, buildDir, { recursive: true });
 
-  // Include production dependencies
-  const backendPkg = require('../packages/backend/package.json');
-  const deps = Object.keys(backendPkg.dependencies || {}).filter(
-    (d) => d !== 'aws-sdk'
-  );
-  for (const dep of deps) {
-    const src = path.join(__dirname, '../node_modules', dep);
-    const dest = path.join(buildDir, 'node_modules', dep);
-    if (fs.existsSync(src)) {
+  // Include production dependencies. npm workspaces hoist packages so only the
+  // top-level node_modules folder contains the full dependency tree. The
+  // previous approach copied only direct dependencies which omitted nested
+  // packages like aws-xray-sdk-core. Use `npm ls` to obtain the complete list
+  // of production dependencies for the backend workspace and copy each one.
+
+  const lsOutput = execSync(
+    'npm ls --omit=dev --parseable --all --workspace packages/backend'
+  )
+    .toString()
+    .trim()
+    .split('\n');
+
+  for (const p of lsOutput) {
+    if (!p.includes('node_modules')) continue;
+    if (p.includes('node_modules/aws-sdk')) continue; // provided by runtime
+
+    const rel = path.relative(path.join(__dirname, '..'), p);
+    const idx = rel.indexOf('node_modules/');
+    if (idx === -1) continue;
+
+    const moduleSubPath = rel.slice(idx + 'node_modules/'.length);
+    const dest = path.join(buildDir, 'node_modules', moduleSubPath);
+    if (fs.existsSync(p)) {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.cpSync(src, dest, { recursive: true });
+      fs.cpSync(p, dest, { recursive: true });
     }
   }
 
