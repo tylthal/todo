@@ -26,7 +26,8 @@ if (!fs.existsSync(rootNodeModules)) {
 
 const archiver = require('archiver');
 
-// Build the backend package
+// Build the shared and backend packages
+run('npm run build --workspace packages/shared');
 run('npm run build --workspace packages/backend');
 
 const distDir = path.join(__dirname, '../packages/backend/dist');
@@ -62,6 +63,21 @@ async function main() {
   // Copy compiled JS files (strip top-level dist path)
   const compiledDir = path.join(distDir, 'backend', 'src');
   fs.cpSync(compiledDir, buildDir, { recursive: true });
+
+  // Copy compiled shared workspace so imports resolve at runtime
+  const sharedSrc = path.join(__dirname, '../packages/shared/dist');
+  const sharedDest = path.join(
+    buildDir,
+    'node_modules',
+    '@sticky-notes',
+    'shared'
+  );
+  fs.mkdirSync(sharedDest, { recursive: true });
+  fs.cpSync(sharedSrc, sharedDest, { recursive: true });
+  fs.copyFileSync(
+    path.join(__dirname, '../packages/shared/package.json'),
+    path.join(sharedDest, 'package.json')
+  );
 
   // Include production dependencies. npm workspaces hoist packages so only the
   // top-level node_modules folder contains the full dependency tree. The
