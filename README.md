@@ -227,10 +227,10 @@ set CLOUDFRONT_DISTRIBUTION_ID="$(terraform -chdir=infra output -raw cloudfront_
 Update the Lambda function after making backend changes with:
 
 ```bash
-npm run deploy:backend
+node scripts/deploy_backend_v2.js
 ```
 
-The script compiles the backend, packages the Lambda code using the Node [archiver](https://www.npmjs.com/package/archiver) library (so no separate `zip` tool is required) and uploads it with the AWS CLI. All production dependencies are automatically copied into the bundle so packages like `aws-xray-sdk-core` are available at runtime. The deployment script expects the repository's root `node_modules` directory to exist, so run `npm install` from the project root before deploying. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
+The script compiles both the shared and backend workspaces, collects production dependencies from the **root** `node_modules` directory (where npm hoists them) and packages everything into `packages/backend/backend.zip`. It then uploads the archive with the AWS CLI. Ensure `npm install` has been run at the repository root so dependencies are available. Set the `LAMBDA_FUNCTION_NAME` environment variable to the function name, which can be retrieved from Terraform outputs:
 
 For Bash or other Unix shells:
 
